@@ -42,6 +42,7 @@ def check_col():
             log("test collection found")
             const.col_UUID = cl["uuid"]
             collection_exists = True
+            break
     if not collection_exists:
         x = open("test/data/col.sample.json")
         collection_data = json.load(x)
