@@ -8,7 +8,7 @@ import const
 from support.dspace_interface.models import Item
 from support.dspace_interface.response_map import check_response
 from support.dspace_proxy import rest_proxy
-from support.item_checking import check_com_col, transform_handle_to_oai_set_id, get_handle, \
+from support.transform.item_checking import check_com_col, transform_handle_to_oai_set_id, get_handle, \
     assure_item_from_file, oai_fail_message, get_test_soup, import_items, get_name_from_file
 from support.logs import log, Severity
 

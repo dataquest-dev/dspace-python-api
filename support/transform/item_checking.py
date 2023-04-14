@@ -23,8 +23,35 @@ def check_com_col():
     log("checking if community and collection for test items exist")
     if const.ENABLE_IMPORT_AT_START:
         import_items()
+
+    if const.com_UUID is None:
+        check_com()
+
+    if const.col_UUID is None:
+        check_col()
+
+    com_col_checked = True
+
+
+def check_col():
+    colls_inside = rest_proxy.get("core/communities/" + const.com_UUID + "/collections").json()
+    colls = colls_inside["_embedded"]["collections"]
+
+    for cl in colls:
+        if cl["name"] == const.COL:
+            log("test collection found")
+            const.col_UUID = cl["uuid"]
+            collection_exists = True
+    if not collection_exists:
+        x = open("test/data/col.sample.json")
+        collection_data = json.load(x)
+        x.close()
+        result = rest_proxy.d.create_collection(const.com_UUID, collection_data)
+        const.col_UUID = result.uuid
+
+
+def check_com():
     top_community_exists = False
-    collection_exists = False
     comm_list = rest_proxy.get("core/communities/search/top").json()
     if "_embedded" not in comm_list:
         top_community_exists = False
@@ -43,22 +70,6 @@ def check_com_col():
 
         result = rest_proxy.d.create_community(None, community_data)
         const.com_UUID = result.uuid
-
-    colls_inside = rest_proxy.get("core/communities/" + const.com_UUID + "/collections").json()
-    colls = colls_inside["_embedded"]["collections"]
-
-    for cl in colls:
-        if cl["name"] == const.COL:
-            log("test collection found")
-            const.col_UUID = cl["uuid"]
-            collection_exists = True
-    if not collection_exists:
-        x = open("test/data/col.sample.json")
-        collection_data = json.load(x)
-        x.close()
-        result = rest_proxy.d.create_collection(const.com_UUID, collection_data)
-        const.col_UUID = result.uuid
-    com_col_checked = True
 
 
 def import_items():
