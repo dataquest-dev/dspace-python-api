@@ -1,0 +1,542 @@
+{
+    "id": "05b3f193-72a9-4900-b70a-b3596259b0d9",
+    "uuid": "05b3f193-72a9-4900-b70a-b3596259b0d9",
+    "name": "HamleDT 3.0",
+    "handle": "123456789/29",
+    "metadata": {
+        "dc.contributor.author": [
+            {
+                "value": "Zeman, Daniel",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            },
+            {
+                "value": "Marecek, David",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 1
+            },
+            {
+                "value": "Masek, Jan",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 2
+            },
+            {
+                "value": "Popel, Martin",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 3
+            },
+            {
+                "value": "Ramasamy, Loganathan",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 4
+            },
+            {
+                "value": "Rosa, Rudolf",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 5
+            },
+            {
+                "value": "Stepanek, Jan",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 6
+            },
+            {
+                "value": "Zabokrtsky, Zdenek",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 7
+            }
+        ],
+        "dc.date.accessioned": [
+            {
+                "value": "2015-08-21T12:26:51Z",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            },
+            {
+                "value": "2023-04-14T07:54:15Z",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 1
+            }
+        ],
+        "dc.date.available": [
+            {
+                "value": "2015-08-21T12:26:51Z",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            },
+            {
+                "value": "2023-04-14T07:54:15Z",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 1
+            }
+        ],
+        "dc.date.issued": [
+            {
+                "value": "2015-08-18",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "dc.description": [
+            {
+                "value": "HamleDT (HArmonized Multi-LanguagE Dependency Treebank) is a compilation of existing dependency treebanks (or dependency conversions of other treebanks), transformed so that they all conform to the same annotation style. This version uses Universal Dependencies as the common annotation style. Update (November 1017): for a current collection of harmonized dependency treebanks, we recommend using the Universal Dependencies (UD). All of the corpora that are distributed in HamleDT in full are also part of the UD project; only some corpora from the Patch group (where HamleDT provides only the harmonizing scripts but not the full corpus data) are available in HamleDT but not in UD.",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "dc.identifier.uri": [
+            {
+                "value": "http://localhost:4000/handle/123456789/29",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "dc.language.iso": [
+            {
+                "value": "ara",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            },
+            {
+                "value": "eus",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 1
+            },
+            {
+                "value": "ben",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 2
+            },
+            {
+                "value": "bul",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 3
+            },
+            {
+                "value": "cat",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 4
+            },
+            {
+                "value": "hrv",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 5
+            },
+            {
+                "value": "ces",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 6
+            },
+            {
+                "value": "dan",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 7
+            },
+            {
+                "value": "nld",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 8
+            },
+            {
+                "value": "eng",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 9
+            },
+            {
+                "value": "est",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 10
+            },
+            {
+                "value": "fin",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 11
+            },
+            {
+                "value": "fra",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 12
+            },
+            {
+                "value": "deu",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 13
+            },
+            {
+                "value": "ell",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 14
+            },
+            {
+                "value": "grc",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 15
+            },
+            {
+                "value": "heb",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 16
+            },
+            {
+                "value": "hin",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 17
+            },
+            {
+                "value": "hun",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 18
+            },
+            {
+                "value": "ind",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 19
+            },
+            {
+                "value": "gle",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 20
+            },
+            {
+                "value": "ita",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 21
+            },
+            {
+                "value": "jpn",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 22
+            },
+            {
+                "value": "lat",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 23
+            },
+            {
+                "value": "fas",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 24
+            },
+            {
+                "value": "pol",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 25
+            },
+            {
+                "value": "por",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 26
+            },
+            {
+                "value": "ron",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 27
+            },
+            {
+                "value": "rus",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 28
+            },
+            {
+                "value": "slk",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 29
+            },
+            {
+                "value": "slv",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 30
+            },
+            {
+                "value": "spa",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 31
+            },
+            {
+                "value": "swe",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 32
+            },
+            {
+                "value": "tam",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 33
+            },
+            {
+                "value": "tel",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 34
+            },
+            {
+                "value": "tur",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 35
+            }
+        ],
+        "dc.publisher": [
+            {
+                "value": "Charles University",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "dc.relation.replaces": [
+            {
+                "value": "http://hdl.handle.net/11858/00-097C-0000-0023-9551-4",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "dc.rights": [
+            {
+                "value": "HamleDT 3.0 License Terms",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            },
+            {
+                "value": "PUB",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 1
+            }
+        ],
+        "dc.rights.uri": [
+            {
+                "value": "https://lindat.mff.cuni.cz/repository/xmlui/page/licence-hamledt-3.0",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "dc.source.uri": [
+            {
+                "value": "http://ufal.mff.cuni.cz/hamledt",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "dc.subject": [
+            {
+                "value": "annotated corpus",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            },
+            {
+                "value": "morphology",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 1
+            },
+            {
+                "value": "syntax",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 2
+            },
+            {
+                "value": "dependency",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 3
+            },
+            {
+                "value": "treebank",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 4
+            },
+            {
+                "value": "harmonized annotation",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 5
+            },
+            {
+                "value": "common annotation style",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 6
+            }
+        ],
+        "dc.title": [
+            {
+                "value": "HamleDT 3.0",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "dc.type": [
+            {
+                "value": "corpus",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "local.contact.person": [
+            {
+                "value": "Daniel Zeman zeman@ufal.mff.cuni.cz Charles University in Prague",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "local.hasCMDI": [
+            {
+                "value": "true",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "local.hiddenButHarvestable": [
+            {
+                "value": "hidden",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ],
+        "local.sponsor": [
+            {
+                "value": "Grantova agentura Ceske republiky GA15-10472S Morphologically and Syntactically Annotated Corpora of Many Languages nationalFunds",
+                "language": null,
+                "authority": null,
+                "confidence": -1,
+                "place": 0
+            }
+        ]
+    },
+    "inArchive": true,
+    "discoverable": false,
+    "withdrawn": false,
+    "lastModified": "2023-04-14T07:54:16.172+00:00",
+    "entityType": null,
+    "type": "item"
+}

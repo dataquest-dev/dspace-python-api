@@ -6,7 +6,7 @@ import unittest
 from bs4 import BeautifulSoup
 
 from support.dspace_proxy import rest_proxy
-from support.item_checking import check_com_col, assure_item_from_file, get_test_soup
+from support.transform.item_checking import check_com_col, assure_item_from_file, get_test_soup
 from support.logs import log
 
 

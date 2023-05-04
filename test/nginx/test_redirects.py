@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import const
-from support.item_checking import assure_item_from_file, get_handle, check_com_col, get_test_soup
+from support.transform.item_checking import assure_item_from_file, get_handle, check_com_col, get_test_soup
 from support.logs import log
 
 

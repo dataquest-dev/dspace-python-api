@@ -9,7 +9,7 @@ from support.transform.item_checking import check_com_col, transform_handle_to_o
     assure_item_from_file, oai_fail_message, get_test_soup
 
 
-class OLACTest(unittest.TestCase):
+class MetashareTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -17,15 +17,15 @@ class OLACTest(unittest.TestCase):
 
     def setUp(self):
         if const.on_dev_5:
-            raise unittest.SkipTest("OLAC format not yet on dev-5.")
+            raise unittest.SkipTest("Metashare format not yet on dev-5.")
 
-    def test_format_olac(self):
-        uuid = assure_item_from_file("olac_check")
+    def test_format_metashare(self):
+        uuid = assure_item_from_file("metasharev2_check")
         handle = get_handle(uuid)
-        link = const.OAI_olac
+        link = const.OAI_metasharev2
         oai_response = requests.get(link + transform_handle_to_oai_set_id(get_handle(const.col_UUID)))
 
-        check_response(oai_response, "getting olac item")
+        check_response(oai_response, "getting metashare item")
         # if oai_response.content is None:
         #     self.fail("Failed to get records for handle " + get_handle(const.col_UUID))
         # if oai_response.status_code == 500:
@@ -36,13 +36,13 @@ class OLACTest(unittest.TestCase):
         if not records:
             self.fail("Did not find any records for " + const.OAI_olac)
         the_one = None
-        oai_original = get_test_soup("olac_check.olac")
-        for id_element in oai_original.find_all("dc:identifier"):
-            if str(id_element.text).__contains__("handle"):
-                id_element.string.replace_with(const.FE_url + "/handle/" + handle)
-        for id_element in oai_original.find_all("dcterms:bibliographicCitation"):
-            if str(id_element.text).__contains__("handle"):
-                id_element.string.replace_with(const.FE_url + "/handle/" + handle)
+        oai_original = get_test_soup("metasharev2_check")
+        # for id_element in oai_original.find_all("dc:identifier"):
+        #     if str(id_element.text).__contains__("handle"):
+        #         id_element.string.replace_with(const.FE_url + "/handle/" + handle)
+        # for id_element in oai_original.find_all("dcterms:bibliographicCitation"):
+        #     if str(id_element.text).__contains__("handle"):
+        #         id_element.string.replace_with(const.FE_url + "/handle/" + handle)
         for record in records:
             if record.find("identifier", recursive=True).text.split(":")[-1] == handle:
                 the_one = record.find("metadata")

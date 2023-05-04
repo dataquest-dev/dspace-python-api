@@ -4,7 +4,7 @@ import requests
 
 import const
 from support.dspace_proxy import rest_proxy
-from support.item_checking import assure_item_with_name_suffix, check_com_col, transform_handle_to_oai_set_id, \
+from support.transform.item_checking import assure_item_with_name_suffix, check_com_col, transform_handle_to_oai_set_id, \
     get_handle, \
     assure_item_from_file, oai_fail_message, get_test_soup
 from support.logs import log, Severity
