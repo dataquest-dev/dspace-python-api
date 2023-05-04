@@ -1,3 +1,6 @@
+import threading
+import time
+
 import const
 from support.dspace_interface.client import DSpaceClient
 from support.logs import log
@@ -22,8 +25,9 @@ class DspaceRESTProxy:
             raise ConnectionError("Cannot connect to dspace!")
         log("Successfully logged in to dspace on " + const.API_URL)
 
-    def reauthenticated(self):
-        authenticated = self.d.authenticate()
+    def reauthenticate(self):
+        self.d.authenticate()
+
     def get(self, command, params=None, data=None):
         """
         Simple GET of url.
@@ -33,5 +37,23 @@ class DspaceRESTProxy:
         self.response = self.d.api_get(url, params, data)
         return self.response
 
+    def reauthenticate_loop(self):
+        while True:
+            # time.sleep(5*60)
+            stopevent.wait(3)  # Minute is not too much, but it also holds
+            if stopevent.is_set():
+                print("Reauthenticate loop is over")
+                break
+            self.reauthenticate()
+            print("Reauthenticating")
+            log("Reauthenticating", Severity.DEBUG)
+
 
 rest_proxy = DspaceRESTProxy()
+reauth = threading.Thread(target=rest_proxy.reauthenticate_loop, daemon=True)
+stopevent = threading.Event()
+reauth.start()
+def stop_reauth(wait = True):
+    stopevent.set()
+    if wait:
+        reauth.join()
