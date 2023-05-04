@@ -88,6 +88,8 @@ def read_metadata():
     if metadatavalue_json:
         for i in metadatavalue_json:
             key = (i['resource_type_id'], i['resource_id'])
+            #replace separator @@ by ;
+            i['text_value'] = i['text_value'].replace("@@", ";")
             if key in metadatavalue.keys():
                 metadatavalue[key].append(i)
             else:
@@ -309,8 +311,12 @@ def import_eperson():
             user_reg[i['eperson_id']] = {'organization': i['organization'], 'confirmation': i['confirmation']}
 
     json_a = read_json('eperson.json')
+    counter = 0
     if json_a:
         for i in json_a:
+            if counter % 500 == 0:
+                rest_proxy.reauthenticated()
+            counter += 1
             metadata = get_metadata_value(7, i['eperson_id'])
             json_p = {'selfRegistered': i['self_registered'], 'requireCertificate' : i['require_certificate'],
                       'netid' : i['netid'], 'canLogIn' : i['can_log_in'], 'lastActive' : i['last_active'],
@@ -597,6 +603,7 @@ def import_item():
     Mapped tables: item, collection2item,workspaceitem, cwf_workflowitem, metadata, handle
     """
     global workspaceitem_id
+    rest_proxy.reauthenticated()
     #create dict from items by item id
     json_a = read_json("item.json")
     items = dict()
@@ -607,7 +614,11 @@ def import_item():
     #create item and workspaceitem
     json_a = read_json("workspaceitem.json")
     if json_a:
+        counter = 0
         for i in json_a:
+            if counter % 500 == 0:
+                rest_proxy.reauthenticated()
+            counter += 1
             item = items[i['item_id']]
             import_workspaceitem(item, i['collection_id'], i['multiple_titles'], i['published_before'], i['multiple_files'],
                                  i['stage_reached'], i['page_reached'])
@@ -619,9 +630,13 @@ def import_item():
     #workflowitem is created from workspaceitem
     #-1, because the workflowitem doesn't contain this attribute
     json_a = read_json('workflowitem.json')
+    counter = 0
     if json_a:
         for i in json_a:
             item = items[i['item_id']]
+            if counter % 500 == 0:
+                rest_proxy.reauthenticated()
+            counter += 1
             import_workspaceitem(item, i['collection_id'], i['multiple_titles'], i['published_before'],
                                  i['multiple_files'], -1, -1)
             #create workflowitem from created workspaceitem
@@ -704,7 +719,7 @@ def import_bundle():
     Import data into database.
     Mapped tables: item2bundle, bundle
     """
-    global item_id, handle, bundle_id
+    global item_id, bundle_id
     #load item2bundle into dict
     json_a = read_json("item2bundle.json")
     item2bundle = dict()
@@ -723,17 +738,19 @@ def import_bundle():
                 primaryBitstream[i['primary_bitstream_id']] = i['bundle_id']
 
     #import bundle without primary bitstream id
+    counter = 0
     if item2bundle:
         for item in item2bundle.items():
             for bundle in item[1]:
+                if counter % 500 == 0:
+                    rest_proxy.reauthenticated()
+                counter += 1
                 json_p = dict()
                 metadata_bundle = get_metadata_value(1, bundle)
                 if metadata_bundle:
                     json_p['metadata'] = metadata_bundle
                     json_p['name'] = metadata_bundle['dc.title'][0]['value']
 
-                if bundle in handle:
-                    json_p['handle'] = handle[(1, bundle)]
                 try:
                     response = do_api_post('core/items/' + str(item_id[item[0]]) + "/bundles", None, json_p)
                     bundle_id[bundle] = convert_response_to_json(response)['uuid']
@@ -745,9 +762,9 @@ def import_bundle():
 def import_bitstream():
     """
     Import data into database.
-    Mapped tables: bitstream, bundle2bitstream, metadata, handle, most_recent_checksum and checksum_result
+    Mapped tables: bitstream, bundle2bitstream, metadata, most_recent_checksum and checksum_result
     """
-    global bitstreamformat_id, handle, primaryBitstream, bitstream2bundle
+    global bitstreamformat_id, primaryBitstream, bitstream2bundle
     #load bundle2bitstream
     json_a = read_json("bundle2bitstream.json")
     if json_a:
@@ -762,8 +779,6 @@ def import_bitstream():
             metadata_bitstream = get_metadata_value(0, i['bitstream_id'])
             if metadata_bitstream:
                 json_p['metadata'] = metadata_bitstream
-            if i['bitstream_id'] in handle:
-                json_p['handle'] = handle[(0, i['bitstream_id'])]
             json_p['sizeBytes'] = i['size_bytes']
             json_p['checkSum'] = {'checkSumAlgorithm': i['checksum_algorithm'], 'value': i['checksum']}
             params = {'internal_id': i['internal_id'],
