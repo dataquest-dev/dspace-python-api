@@ -1,24 +1,26 @@
 import enum
 import sys
-
 import expected
 from support.logs import log, Severity
 
+# beginning of parameters to set
 user = "test@test.edu"
-password = "dspace"
-# password = "admin"
-# user = "m@edu.com"
-# password = "dspace"
-
+password = "admin"
 # http or https
 use_ssl = False
-# host = "localhost"
-host = "dev-5.pc"
-# fe_port = ":4000"
-fe_port = None
-# be_port = ":8080"
-be_port = None
+host = "localhost"
+
+fe_port = ":4000"  # or use None
+be_port = ":8080"  # or use None
 be_location = "/server/"
+
+# end of parameters to set
+
+if len(sys.argv) > 1:
+    print("captured argv" + sys.argv[1])
+    if sys.argv[1] == 'docker':
+        if host == 'localhost':
+            host = 'host.docker.internal'
 
 # command that imports items into oai
 # in github action, this command is correct

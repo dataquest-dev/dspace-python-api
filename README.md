@@ -1,7 +1,30 @@
 [![Test dspace on dev-5](https://github.com/dataquest-dev/dspace-blackbox-testing/actions/workflows/test.yml/badge.svg)](https://github.com/dataquest-dev/dspace-blackbox-testing/actions/workflows/test.yml)
 
-# Dspace-blackbox-testing
-Blackbox tests for dspace repository
+
+# Dspace python REST API wrapper
+
+A library by dspace is used to simplify access through python to running
+dspace instance.
+It contains several parts.
+
+## common requirements
+- For every part, before running it for the first time, requirements must be installed with following command
+`pip install -r requirements.txt`
+
+- Next insert correct values into `const.py`
+  - `user = "<ADMIN_NAME>"`
+  - `password = "<ADMIN_PASSWORD>"`
+    
+
+  - `use_ssl = False  # or True - http or https`
+  - `host = "<YOUR_SERVER>"  # e.g., localhost or my.dspace.dmn`
+  - `fe_port = "<YOUR_FE_PORT>"  # or None`
+  - `be_port = "<YOUR_BE_PORT>"  # or None`
+  - `be_location = "<SERVER_SUBPATH>"  # e.g. /server/`
+
+
+
+
 
 # How to migrate CLARIN-DSpace5.* to CLARIN-DSpace7.*
 ### Prerequisites:
@@ -52,19 +75,6 @@ Blackbox tests for dspace repository
 7. Prepare `dspace-python-api` project for migration
 **IMPORTANT:** If `data` folder doesn't exist in the project, create it
 
-Update `const.py`
-- `user = "<ADMIN_NAME>"`
-- `password = "<ADMIN_PASSWORD>"`
-
-- `# http or https`
-- `use_ssl = False`
-- `host = "<YOUR_SERVER>" e.g., localhost`
-- `# host = "dev-5.pc"`
-- `fe_port = "<YOUR_FE_PORT>"`
-- `# fe_port = ":4000"`
-- `be_port = "<YOUR_BE_PORT>"`
-- `# be_port = ":8080"`
-- `be_location = "/server/"`
 
 Update `migration_const.py`
 - `REPOSITORY_PATH = "<PROJECT_PATH>"`
@@ -105,11 +115,10 @@ The reason for this is, that when dspace runs on windows, it has trouble with sp
 
 
 ## Settings
-See const.py for constants used at testing.
 
 To set up logs, navigate to support.logs.py and modify method set_up_logging.
 
-## Run
+## Tests
 
 In order to run tests, use command
 `python -m unittest`
@@ -117,9 +126,6 @@ In order to run tests, use command
 Recommended variation is
 `python -m unittest -v 2> output.txt`
 which leaves result in output.txt
-
-Before running for the first time, requirements must be installed with following command
-`pip install -r requirements.txt`
 
 It is possible to run in Pycharm with configuration like so:
 
