@@ -18,13 +18,13 @@ Blackbox tests for dspace repository
 > // clarin-dspace database
 > - `createdb --username=postgres --owner=dspace --encoding=UNICODE clarin-dspace` // create a clarin database with owner
 
-> // It run on second try:
+> // It runs on second try:
 > - `psql -U postgres clarin-dspace < <CLARIN_DUMP_FILE_PATH>`
 
 > // clarin-utilities database
 > - `createdb --username=postgres --owner=dspace --encoding=UNICODE clarin-utilities` // create a utilities database with owner
 
-> // It run on second try:
+> // It runs on second try:
 > - `psql -U postgres clarin-utilities < <UTILITIES_DUMP_FILE_PATH>`
 
 ***
@@ -50,7 +50,7 @@ Blackbox tests for dspace repository
 
 ***
 7. Prepare `dspace-python-api` project for migration
-**IMPORTANT:** If `data` folder doesn't exist in the project, create it
+**IMPORTANT:** If `data` or `icon` folders don't exist in the project, create them
 
 Update `const.py`
 - `user = "<ADMIN_NAME>"`
@@ -69,18 +69,22 @@ Update `const.py`
 Update `migration_const.py`
 - `REPOSITORY_PATH = "<PROJECT_PATH>"`
 - `DATA_PATH = REPOSITORY_PATH + "data/"`
+- `ICON_PATH = REPSITORY_PATH + "icon\"`
 
 ***
-8. Create JSON files from the database tables. **NOTE: You must do it for both databases `clarin-dspace` and `clarin-utilities`** (JSON files are stored in the `data` folder)
+8. Copy license label icon images (.png) from dspace5 into `icon` in `dspace-python-api`
+
+***
+9. Create JSON files from the database tables. **NOTE: You must do it for both databases `clarin-dspace` and `clarin-utilities`** (JSON files are stored in the `data` folder)
 - Go to `dspace-python-api` in the cmd
 - Run `pip install -r requirements.txt`
 - Run `python data_migration.py <DATABSE NAME> <HOST> postgres <PASSWORD FOR POSTGRES>` e.g., `python data_migration.py clarin-dspace localhost postgres pass` (arguments for database connection - database, host, user, password) for the BOTH databases // NOTE there must exist data folder in the project structure
 
 ***
-9. Copy `assetstore` from dspace5 to dspace7 (for bitstream import). `assetstore` is in the folder where you have installed DSpace `dspace/assetstore`.
+10. Copy `assetstore` from dspace5 to dspace7 (for bitstream import). `assetstore` is in the folder where you have installed DSpace `dspace/assetstore`.
 
 ***
-10. Import data from the json files (python-api/data/*) into dspace database (CLARIN-DSpace7.*)
+1Import data from the json files (python-api/data/*) into dspace database (CLARIN-DSpace7.*)
 - **NOTE:** database must be up to date (`dspace database migrate force` must be called in the `dspace/bin`)
 - **NOTE:** dspace server must be running
 - From the `dspace-python-api` run command `python dspace_import.py`
