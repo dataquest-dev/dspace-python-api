@@ -1,6 +1,5 @@
 import psycopg2
 import json
-import sys
 
 def get_data_as_json(database, host, db_user, db_password):
 
@@ -25,9 +24,10 @@ def get_data_as_json(database, host, db_user, db_password):
         #access to 0. position, because the fetchone returns tuple
         fp.write((json.dumps(cursor.fetchone()[0])))
         fp.close()
+        print("wrote to file", fp_name)
     print("Data was successfully exported!")
     conn.close()
     print("Disconnect from database!")
 
-if __name__== "__main__":
-    get_data_as_json(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+
+

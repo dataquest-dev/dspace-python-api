@@ -14,6 +14,8 @@ class DspaceRESTProxy:
     Serves as proxy to Dspace REST API.
     Mostly uses attribute d which represents (slightly modified) dspace_client from
     original python rest api by dspace developers
+
+    PLEASE call stop_reauth() when you are finished, thanks
     """
 
     def __init__(self):
@@ -22,7 +24,8 @@ class DspaceRESTProxy:
         authenticated = self.d.authenticate()
         if not authenticated:
             log(f'Error logging in to dspace REST API at ' + const.API_URL + '! Exiting!', ERROR)
-            raise ConnectionError("Cannot connect to dspace!")
+            raise ConnectionError("Cannot connect to dspace on " + const.API_URL
+                                  + "!! possibly wrong username or password, please check.")
         log("Successfully logged in to dspace on " + const.API_URL)
 
     def reauthenticate(self):
@@ -40,12 +43,11 @@ class DspaceRESTProxy:
     def reauthenticate_loop(self):
         while True:
             # time.sleep(5*60)
-            stopevent.wait(3)  # Minute is not too much, but it also holds
+            stopevent.wait(60)  # each minute
             if stopevent.is_set():
-                print("Reauthenticate loop is over")
+                log("Reauthenticate loop is over", Severity.DEBUG)
                 break
             self.reauthenticate()
-            print("Reauthenticating")
             log("Reauthenticating", Severity.DEBUG)
 
 
@@ -54,6 +56,7 @@ reauth = threading.Thread(target=rest_proxy.reauthenticate_loop, daemon=True)
 stopevent = threading.Event()
 reauth.start()
 def stop_reauth(wait = True):
+    print("Reauth over")
     stopevent.set()
     if wait:
         reauth.join()

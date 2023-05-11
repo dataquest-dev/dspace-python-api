@@ -1,6 +1,7 @@
 import json
 import const
-import migration_const
+from db_dump_to_json import get_data_as_json
+from import_db_const import *
 
 from support.logs import log
 from support.dspace_proxy import rest_proxy
@@ -31,7 +32,7 @@ def read_json(file_name):
     @param file_name: file name
     @return: data as json
     """
-    x = open(migration_const.DATA_PATH + file_name)
+    x = open("data/" + file_name)
     json_p = json.load(x)
     x.close()
     return json_p
@@ -880,6 +881,12 @@ def import_bundles_and_bitstreams():
     #import_bitstream()
 
 #call
+
+print("WHERE IS THIS")
+if perform_import:
+    print("dumping")
+    get_data_as_json(database_name1, host1, user1, password1)
+    get_data_as_json(database_name2, host2, user2, password2)
 print("Data migraton started!")
 #at the beginning
 read_metadata()

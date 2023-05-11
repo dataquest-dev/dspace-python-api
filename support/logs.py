@@ -1,7 +1,7 @@
 """
 Logs. Everything seems self-explanatory to this author.
 """
-
+import time
 from enum import Enum
 from datetime import datetime
 import atexit
@@ -68,11 +68,12 @@ class Severity(Enum):
 
 class LogMessage:
     def __init__(self, msg, severity):
+        self.time = time.time()
         self.message = msg
         self.severity = severity
 
     def __str__(self):
-        return "[" + self.severity.name + "] " + self.message
+        return "[" + self.severity.name + "] {" + str(self.time) + "} " + self.message
 
 
 def log(message, severity=Severity.INFO):
@@ -105,6 +106,9 @@ def exit_handler():
             for one_log in all_logs:
                 print(one_log, file=dl)
 
+# todo write all to debug file
+# todo write ERROR and WARN (and maybe others) to logs.txt
+# todo write which? to console?
 
 atexit.register(exit_handler)
 set_up_logging()
