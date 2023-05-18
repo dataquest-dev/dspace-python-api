@@ -870,6 +870,19 @@ def import_handle_with_url():
 
     print("Handles with url were successfully imported!")
 
+def import_user_metadata():
+    """
+    Import data into database.
+    Mapped tables: user_metadata
+    """
+    global eperson_id
+    json_a = read_json("user_metadata.json")
+    if json_a:
+        for i in json_a:
+            json_p = {'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}
+            param = {'bitstreamUUID': }
+            do_api_post('core/clarinusermetadata/manage/')
+
 def import_epersons_and_groups():
     """
     Import part of dspace: epersons and groups.
@@ -901,7 +914,7 @@ def import_bundles_and_bitstreams():
     import_item()
     import_bitstreamformatregistry()
     import_bundle()
-    #import_bitstream()
+    import_bitstream()
 
 #call
 print("Data migraton started!")
@@ -918,4 +931,5 @@ import_hierarchy()
 import_epersons_and_groups()
 import_licenses()
 import_bundles_and_bitstreams()
+import_user_metadata()
 print("Data migration is completed!")
