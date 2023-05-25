@@ -4,7 +4,7 @@
 # Dspace python REST API wrapper
 
 A library by dspace is used to simplify access through python to running
-dspace instance.
+[dspace](https://github.com/dataquest-dev/DSpace) instance.
 It contains several parts.
 
 - [Data import](#data-import)
@@ -54,7 +54,7 @@ then copy assetstore folder to `/dspace/assetstore`.
 ## Installation
 Installing clarin 7
 
-# I dont think this belongs here, install according to [official](https://wiki.lyrasis.org/display/DSDOC7x/Installing+DSpace) or from [clarin wiki](https://github.com/ufal/clarin-dspace/wiki/Migration-to-DSpace7.2.1.)
+TODO I don't think this belongs here, install according to [official](https://wiki.lyrasis.org/display/DSDOC7x/Installing+DSpace) or from [clarin wiki](https://github.com/ufal/clarin-dspace/wiki/Migration-to-DSpace7.2.1.)
 
 1. Clone repository //https://github.com/dataquest-dev/DSpace (branch dtq-dev)
    
@@ -77,7 +77,20 @@ If you have no idea what that means, please check
 
 ## Clear database
 
-to be added
+**NOTE: all data will be deleted**
+
+- Install again the database following the official tutorial steps: https://wiki.lyrasis.org/display/DSDOC7x/Installing+DSpace#InstallingDSpace-PostgreSQL11.x,12.xor13.x(withpgcryptoinstalled)
+- Or try to run these commands in the <PSQL_PATH>/bin:
+  - `dropdb --username=postgres mydb` // drop old database
+  - `createdb --username=postgres --owner=dspace --encoding=UNICODE dspace` // create database
+  - `psql --username=postgres -c "CREATE EXTENSION pgcrypto;" dspace ` // Add pgcrypto extension
+    > If there is warinng that `-c` parameter was ignored, just write a `CREATE EXTENSION pgcrypto;` command in the database cmd.
+    > CREATE EXTENSION pgcrypto;
+![image](https://user-images.githubusercontent.com/90026355/228528044-f6ad178c-f525-4b15-b6cc-03d8d94c8ccc.png)
+  - Now the clarin database for DSpace7 should be created
+  - Run the database by the command: `pg_ctl start -D "<PSQL_PATH>\data\"`
+
+- Create an admin by running the command `dspace create-administrator` in the `dspace/bin`
 
 ## No access to original database, only sql dump
 to be added
@@ -173,7 +186,7 @@ It is possible to run in Pycharm with configuration like so:
 Check test.example package. Everything necessary should be there.
 
 Test data are in `test/data` folder.
-If your test data contains special characters like čřšáý and so on, it is recommended
+If your test data contains special characters like `čřšáý` and so on, it is recommended
 to make `.stripped` variation of the file. 
 E.g. `my_format.json` and `my_format.stripped.json` for loading data
 and `my_format.test.xml` and `my_format.test.stripped.xml` for testing.
