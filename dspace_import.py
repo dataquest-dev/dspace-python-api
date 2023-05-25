@@ -1,4 +1,6 @@
 import json
+import os
+
 import const
 from db_dump_to_json import get_data_as_json
 from import_db_const import *
@@ -6,7 +8,8 @@ from import_db_const import *
 from support.logs import log
 from support.dspace_proxy import rest_proxy
 
-#global params
+# global params
+labels = dict()
 eperson_id = dict()
 group_id = dict()
 metadata_schema_id = dict()
@@ -20,12 +23,14 @@ workspaceitem_id = dict()
 metadatavalue = dict()
 handle = dict()
 bitstreamformat_id = dict()
+unknown_format_id = None
 primaryBitstream = dict()
 bitstream2bundle = dict()
 bundle_id = dict()
 bitstream_id = dict()
 
-#functions
+
+# functions
 def read_json(file_name):
     """
     Read data from file as json.
@@ -36,6 +41,7 @@ def read_json(file_name):
     json_p = json.load(x)
     x.close()
     return json_p
+
 
 def do_api_post(url, param, json_p):
     """
@@ -49,6 +55,7 @@ def do_api_post(url, param, json_p):
     response = rest_proxy.d.api_post(url, param, json_p)
     return response
 
+
 def do_api_get_one(url, id):
     """
     Get data with id from table.
@@ -60,6 +67,7 @@ def do_api_get_one(url, id):
     response = rest_proxy.d.api_get(url, None, None)
     return response
 
+
 def do_api_get_all(url):
     """
     Get all data from table.
@@ -67,9 +75,10 @@ def do_api_get_all(url):
     @return: response from api get
     """
     url = const.API_URL + url
-    param = {'size' : 1000}
+    param = {'size': 1000}
     response = rest_proxy.d.api_get(url, param, None)
     return response
+
 
 def convert_response_to_json(response):
     """
@@ -78,6 +87,7 @@ def convert_response_to_json(response):
     @return: json created from response
     """
     return json.loads(response.content.decode('utf-8'))
+
 
 def read_metadata():
     """
@@ -89,12 +99,13 @@ def read_metadata():
     if metadatavalue_json:
         for i in metadatavalue_json:
             key = (i['resource_type_id'], i['resource_id'])
-            #replace separator @@ by ;
+            # replace separator @@ by ;
             i['text_value'] = i['text_value'].replace("@@", ";")
             if key in metadatavalue.keys():
                 metadatavalue[key].append(i)
             else:
                 metadatavalue[key] = [i]
+
 
 def read_handle():
     """
@@ -111,6 +122,7 @@ def read_handle():
             else:
                 handle[key] = [i]
 
+
 def get_metadata_value(old_resource_type_id, old_resource_id):
     """
     Get metadata value for dspace object.
@@ -119,13 +131,13 @@ def get_metadata_value(old_resource_type_id, old_resource_id):
     result = dict()
     if not metadatavalue:
         read_metadata()
-    #get all metadatavalue for object
+    # get all metadatavalue for object
     if (old_resource_type_id, old_resource_id) in metadatavalue:
         metadatavalue_obj = metadatavalue[(old_resource_type_id, old_resource_id)]
     else:
         return None
     if metadatavalue_obj:
-        #create list of object metadata
+        # create list of object metadata
         for i in metadatavalue_obj:
             if i['metadata_field_id'] in metadata_field_id:
                 try:
@@ -134,17 +146,17 @@ def get_metadata_value(old_resource_type_id, old_resource_id):
                 except:
                     log('GET request' + response.url + ' failed. Status: ' + str(response.status_code))
                     continue
-                #get metadataschema
+                # get metadataschema
                 try:
                     response = do_api_get_one('core/metadataschemas', metadatafield_json['_embedded']['schema']['id'])
                     metadataschema_json = convert_response_to_json(response)
                 except:
                     log('GET request ' + response.url + ' failed. Status: ' + str(response.status_code))
                     continue
-                #define and insert key and value of dict
+                # define and insert key and value of dict
                 key = metadataschema_json['prefix'] + '.' + metadatafield_json['element']
-                value = {'value' : i['text_value'], 'language' : i['text_lang'], 'authority' : i['authority'],
-                               'confidence' : i['confidence'], 'place' : i['place']}
+                value = {'value': i['text_value'], 'language': i['text_lang'], 'authority': i['authority'],
+                         'confidence': i['confidence'], 'place': i['place']}
                 if metadatafield_json['qualifier']:
                     key += '.' + metadatafield_json['qualifier']
                 if key in result.keys():
@@ -153,7 +165,8 @@ def get_metadata_value(old_resource_type_id, old_resource_id):
                     result[key] = [value]
     return result
 
-#table mapping
+
+# table mapping
 def import_licenses():
     """
     Import data into database.
@@ -161,34 +174,55 @@ def import_licenses():
     """
     global eperson_id
 
-    #import license_label and license_extended_mapping
-    files = ['license_label.json', 'license_label_extended_mapping.json']
-    end_points = ['licenses/import/labels', 'licenses/import/extendedMapping']
-    for f, e in zip(files, end_points):
-        json_a = read_json(f)
-        if json_a:
+    # import license_label
+    json_a = read_json('license_label.json')
+    if json_a:
+        for i in json_a:
+            json_p = {'label': i['label'], 'title': i['title'], 'extended': i['is_extended'], 'icon': None}
+            # find image with label name
             try:
-                response = do_api_post(e, None, json_a)
-                if response.status_code != 200:
-                    log('Import ' + f + ': status code ' + str(response.status_code))
+                image_path = migration_const.ICON_PATH + i['label'].lower() + ".png"
+                if os.path.exists(image_path):
+                    with open(image_path, "rb") as image:
+                        file = image.read()
+                        json_p['icon'] = list(file)
             except Exception as e:
-                json_e = json.loads(e.args[0])
-                log('Import ' + f + ': status code ' + str(json_e['status']))
+                log("Exception while reading label image with name: " + i['label'].lower() + ".png occurred: " + e)
+            try:
+                response = do_api_post('core/clarinlicenselabels', None, json_p)
+                created_label = convert_response_to_json(response)
+                del created_label['license']
+                del created_label['_links']
+                labels[i['label_id']] = created_label
+            except:
+                log('POST request ' + response.url + ' failed. Status code ' + str(response.status_code))
 
-    #import license_definition
+    # read license label extended mapping
+    extended_label = dict()
+    json_a = read_json('license_label_extended_mapping.json')
+    if json_a:
+        for i in json_a:
+            if i['license_id'] in extended_label.keys():
+                extended_label[i['license_id']].append(labels[i['label_id']])
+            else:
+                extended_label[i['license_id']] = [labels[i['label_id']]]
+
+    # import license_definition
     json_a = read_json('license_definition.json')
     if json_a:
-        for data in json_a:
-            data['eperson_id'] = eperson_id[data['eperson_id']]
-        try:
-            response = do_api_post( 'licenses/import/licenses', None, json_a)
-            if response.status_code != 200:
+        for i in json_a:
+            json_p = {'name': i['name'], 'definition': i['definition'], 'confirmation': i['confirmation'],
+                      'requiredInfo': i['required_info'], 'clarinLicenseLabel': labels[i['label_id']]}
+            if i['license_id'] in extended_label:
+                json_p['extendedClarinLicenseLabels'] = extended_label[i['license_id']]
+            param = {'eperson': eperson_id[i['eperson_id']]}
+            try:
+                response = do_api_post('clarin/import/license', param, json_p)
+            except:
                 log('POST request ' + response.url + ' failed. Status code ' + str(response.status_code))
-        except Exception as e:
-            json_e = json.loads(e.args[0])
-            log('POST request ' + json_e['path'] + ' failed. Status code ' + str(json_e['status']))
 
     print("License_label, Extended_mapping, License_definitions were successfully imported!")
+
 
 def import_registrationdata():
     """
@@ -198,7 +232,7 @@ def import_registrationdata():
     json_a = read_json('registrationdata.json')
     if json_a:
         for i in json_a:
-            json_p = {'email' : i['email']}
+            json_p = {'email': i['email']}
             try:
                 do_api_post('eperson/registrations', None, json_p)
             except Exception as e:
@@ -207,9 +241,11 @@ def import_registrationdata():
                     str(json_e['status']))
     print("Registration data was successfully imported!")
 
+
 def import_bitstreamformatregistry():
     global bitstreamformat_id
-    #read all existing data from bitstreamformatregistry
+    global unknown_format_id
+    # read all existing data from bitstreamformatregistry
     shortDesc2Id = dict()
     try:
         response = do_api_get_all('core/bitstreamformats')
@@ -217,6 +253,8 @@ def import_bitstreamformatregistry():
         if bitstreamformat:
             for i in bitstreamformat:
                 shortDesc2Id[i['shortDescription']] = i['id']
+                if i['description'] == 'Unknown data format':
+                    unknown_format_id = i['id']
 
         json_a = read_json('bitstreamformatregistry.json')
         if json_a:
@@ -250,6 +288,7 @@ def import_bitstreamformatregistry():
         log('GET request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
     print("Bitstream format registry was successfully imported!")
+
 
 def import_epersongroup():
     """
@@ -297,15 +336,16 @@ def import_epersongroup():
 
     print("Eperson group was successfully imported!")
 
+
 def import_eperson():
     """
     Import data into database.
     Mapped tables: eperson, metadatavalue
     """
     global eperson_id
-    #read user_registration
+    # read user_registration
     json_a = read_json("user_registration.json")
-    #create dict from user registrations
+    # create dict from user registrations
     user_reg = dict()
     if json_a:
         for i in json_a:
@@ -315,9 +355,9 @@ def import_eperson():
     if json_a:
         for i in json_a:
             metadata = get_metadata_value(7, i['eperson_id'])
-            json_p = {'selfRegistered': i['self_registered'], 'requireCertificate' : i['require_certificate'],
-                      'netid' : i['netid'], 'canLogIn' : i['can_log_in'], 'lastActive' : i['last_active'],
-                      'email' : i['email'], 'password' : i['password']}
+            json_p = {'selfRegistered': i['self_registered'], 'requireCertificate': i['require_certificate'],
+                      'netid': i['netid'], 'canLogIn': i['can_log_in'], 'lastActive': i['last_active'],
+                      'email': i['email'], 'password': i['password']}
             if metadata:
                 json_p['metadata'] = metadata
             if i['eperson_id'] in user_reg:
@@ -336,6 +376,7 @@ def import_eperson():
 
     print("Eperson was successfully imported!")
 
+
 def import_group2group():
     """
     Import data into database.
@@ -346,12 +387,21 @@ def import_group2group():
     if json_a:
         for i in json_a:
             try:
-                do_api_post('clarin/eperson/groups/' + group_id[i['parent_id']][0] + '/subgroups', None,
-                    const.API_URL + 'eperson/groups/' + group_id[i['child_id']][0])
+                response = do_api_post('clarin/eperson/groups/' + group_id[i['parent_id']][0] + '/subgroups', None,
+                                       const.API_URL + 'eperson/groups/' + group_id[i['child_id']][0])
             except Exception as e:
-                json_e = json.loads(e.args[0])
-                log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
+                # Sometimes the Exception `e` is type of `int`
+                if isinstance(e, int):
+                    log('POST request ' + 'clarin/eperson/groups/' + group_id[i['parent_id']][0] + '/subgroups' +
+                        ' failed.')
+                else:
+                    print("type:" + str(e.args[0]))
+                    # json_e = json.loads(str(e.args[0]))
+                    log('POST request ' + response.url + ' for id: ' + str(group_id[i['parent_id']][0]) +
+                        ' failed. Status: ' + str(response.status_code))
+                    # log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
     print("Group2group was successfully imported!")
+
 
 def import_group2eperson():
     """
@@ -364,12 +414,13 @@ def import_group2eperson():
         for i in json_a:
             try:
                 do_api_post('clarin/eperson/groups/' + group_id[i['eperson_group_id']][0] + '/epersons', None,
-                    const.API_URL + 'eperson/groups/' + eperson_id[i['eperson_id']])
+                            const.API_URL + 'eperson/groups/' + eperson_id[i['eperson_id']])
             except Exception as e:
                 json_e = json.loads(e.args[0])
                 log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
 
     print("Epersongroup2eperson was successfully imported!")
+
 
 def import_metadataschemaregistry():
     """
@@ -384,12 +435,11 @@ def import_metadataschemaregistry():
     except:
         log('GET request ' + response.url + ' failed.')
 
-
     json_a = read_json('metadataschemaregistry.json')
-    if  json_a:
+    if json_a:
         for i in json_a:
-            json_p = {'namespace' : i['namespace'], 'prefix' : i['short_id']}
-            #prefix has to be unique
+            json_p = {'namespace': i['namespace'], 'prefix': i['short_id']}
+            # prefix has to be unique
             try:
                 response = do_api_post('core/metadataschemas', None, json_p)
                 metadata_schema_id[i['metadata_schema_id']] = convert_response_to_json(response)['id']
@@ -405,8 +455,9 @@ def import_metadataschemaregistry():
                             break
                 if not found:
                     log('POST request ' + response.url + ' for id: ' + str(
-                    i['metadata_schema_id']) + ' failed. Status: ' + str(response.status_code))
+                        i['metadata_schema_id']) + ' failed. Status: ' + str(response.status_code))
     print("MetadataSchemaRegistry was successfully imported!")
+
 
 def import_metadatafieldregistry():
     """
@@ -423,9 +474,9 @@ def import_metadatafieldregistry():
     json_a = read_json('metadatafieldregistry.json')
     if json_a:
         for i in json_a:
-            json_p = {'element' : i['element'], 'qualifier' : i['qualifier'], 'scopeNote' : i['scope_note']}
+            json_p = {'element': i['element'], 'qualifier': i['qualifier'], 'scopeNote': i['scope_note']}
             param = {'schemaId': metadata_schema_id[i['metadata_schema_id']]}
-            #element and qualifier have to be unique
+            # element and qualifier have to be unique
             try:
                 response = do_api_post('core/metadatafields', param, json_p)
                 metadata_field_id[i['metadata_field_id']] = convert_response_to_json(response)['id']
@@ -442,6 +493,7 @@ def import_metadatafieldregistry():
                     log('POST request ' + response.url + ' for id: ' + str(
                         i['metadata_field_id']) + ' failed. Status: ' + str(response.status_code))
     print("MetadataFieldRegistry was successfully imported!")
+
 
 def import_community():
     """
@@ -470,22 +522,23 @@ def import_community():
         counter = 0
         while json_comm:
             json_p = {}
-            #process community only when:
-            #comm is not parent and child
-            #comm is parent and not child
-            #parent comm exists
-            #else process it later
+            # process community only when:
+            # comm is not parent and child
+            # comm is parent and not child
+            # parent comm exists
+            # else process it later
             i = json_comm[counter]
             i_id = i['community_id']
-            if (i_id not in parent.keys() and i_id not in child.keys()) or i_id not in child.keys() or child[i_id] in community_id.keys():
-                #resource_type_id for community is 4
+            if (i_id not in parent.keys() and i_id not in child.keys()) or i_id not in child.keys() or child[
+                i_id] in community_id.keys():
+                # resource_type_id for community is 4
                 if (4, i['community_id']) in handle:
                     handle_comm = handle[(4, i['community_id'])][0]
                     json_p = {'handle': handle_comm['handle']}
                 metadatavalue_comm = get_metadata_value(4, i['community_id'])
                 if metadatavalue_comm:
                     json_p = {'metadata': metadatavalue_comm}
-                #create community
+                # create community
                 parent_id = None
                 if i_id in child:
                     parent_id = {'parent': community_id[child[i_id]]}
@@ -497,14 +550,14 @@ def import_community():
                     log('POST request ' + response.url + ' for id: ' + str(i_id) + ' failed. Status: ' +
                         str(response.status_code))
 
-                #add to community2logo, if community has logo
+                # add to community2logo, if community has logo
                 if i["logo_bitstream_id"] != None:
                     community2logo[i_id] = i["logo_bitstream_id"]
 
                 # create admingroup
                 if i['admin'] != None:
                     try:
-                        response =  do_api_post('core/communities/' + resp_community_id + '/adminGroup', None, {})
+                        response = do_api_post('core/communities/' + resp_community_id + '/adminGroup', None, {})
                         group_id[i['admin']] = [convert_response_to_json(response)['id']]
                     except:
                         log('POST request ' + response.url + ' failed. Status: ' + str(response.status_code))
@@ -515,6 +568,7 @@ def import_community():
                 counter = 0
 
     print("Community and Community2Community were successfully imported!")
+
 
 def import_collection():
     """
@@ -530,7 +584,7 @@ def import_collection():
         for i in comm_2_coll_json:
             coll2comm[i['collection_id']] = i['community_id']
 
-    #because the role DEFAULT_READ is without old group id in collection
+    # because the role DEFAULT_READ is without old group id in collection
     coll2group = dict()
     metadata_json = read_json('metadatavalue.json')
 
@@ -549,9 +603,9 @@ def import_collection():
             if (3, i['collection_id']) in handle:
                 handle_col = handle[(3, i['collection_id'])][0]
                 json_p['handle'] = handle_col['handle']
-            #TODO
-            #missing submitter
-            #, 'submitter': eperson_id[i['submitter']]
+            # TODO
+            # missing submitter
+            # , 'submitter': eperson_id[i['submitter']]
             params = {'parent': community_id[coll2comm[i['collection_id']]]}
             try:
                 response = do_api_post('core/collections', params, json_p)
@@ -561,12 +615,12 @@ def import_collection():
                 log('POST request ' + response.url + ' for id: ' + str(i['collection_id']) + 'failed. Status: ' +
                     str(response.status_code))
 
-            #add to collection2logo, if collection has logo
+            # add to collection2logo, if collection has logo
             if i["logo_bitstream_id"] != None:
                 community2logo[i['collection_id']] = i["logo_bitstream_id"]
 
-            #greate group
-            #template_item_id, workflow_step_1, workflow_step_3, admin are not implemented,
+            # greate group
+            # template_item_id, workflow_step_1, workflow_step_3, admin are not implemented,
             # because they are null in all data
             if i['workflow_step_2']:
                 try:
@@ -594,41 +648,43 @@ def import_collection():
 
     print("Collection and Community2collection were successfully imported!")
 
+
 def import_item():
     """
     Import data into database.
     Mapped tables: item, collection2item,workspaceitem, cwf_workflowitem, metadata, handle
     """
     global workspaceitem_id
-    #create dict from items by item id
+    # create dict from items by item id
     json_a = read_json("item.json")
     items = dict()
     if json_a:
         for i in json_a:
             items[i['item_id']] = i
 
-    #create item and workspaceitem
+    # create item and workspaceitem
     json_a = read_json("workspaceitem.json")
     if json_a:
         for i in json_a:
             item = items[i['item_id']]
-            import_workspaceitem(item, i['collection_id'], i['multiple_titles'], i['published_before'], i['multiple_files'],
+            import_workspaceitem(item, i['collection_id'], i['multiple_titles'], i['published_before'],
+                                 i['multiple_files'],
                                  i['stage_reached'], i['page_reached'])
             del items[i['item_id']]
 
     print("Workspaceitem was successfully imported!")
 
-    #create workflowitem
-    #workflowitem is created from workspaceitem
-    #-1, because the workflowitem doesn't contain this attribute
+    # create workflowitem
+    # workflowitem is created from workspaceitem
+    # -1, because the workflowitem doesn't contain this attribute
     json_a = read_json('workflowitem.json')
     if json_a:
         for i in json_a:
             item = items[i['item_id']]
             import_workspaceitem(item, i['collection_id'], i['multiple_titles'], i['published_before'],
                                  i['multiple_files'], -1, -1)
-            #create workflowitem from created workspaceitem
-            params = {'id' : str(workspaceitem_id[i['item_id']])}
+            # create workflowitem from created workspaceitem
+            params = {'id': str(workspaceitem_id[i['item_id']])}
             try:
                 response = do_api_post('clarin/import/workflowitem', params, None)
             except:
@@ -638,10 +694,10 @@ def import_item():
 
     print("Cwf_workflowitem was successfully imported!")
 
-    #create other items
+    # create other items
     for i in items.values():
         json_p = {'discoverable': i['discoverable'], 'inArchive': i['in_archive'],
-                  'lastModified': i['last_modified'], 'withdrawn' : i['withdrawn']}
+                  'lastModified': i['last_modified'], 'withdrawn': i['withdrawn']}
         metadata_item = get_metadata_value(2, i['item_id'])
         if metadata_item:
             json_p['metadata'] = metadata_item
@@ -655,9 +711,10 @@ def import_item():
             response_json = convert_response_to_json(response)
             item_id[i['item_id']] = response_json['id']
         except:
-            log('POST request ' + response.url + ' for id: ' + str(i['item_id'] + ' failed. Status: ' +
-                                                                   str(response.status_code)))
+            log('POST request ' + response.url + ' for id: ' + str(i['item_id']) + ' failed. Status: ' +
+                str(response.status_code))
     print("Item and Collection2item were successfully imported!")
+
 
 def import_workspaceitem(item, owningCollectin, multipleTitles, publishedBefore, multipleFiles, stagereached,
                          pageReached):
@@ -669,14 +726,14 @@ def import_workspaceitem(item, owningCollectin, multipleTitles, publishedBefore,
     global workspaceitem_id, item_id, collection_id, eperson_id
 
     json_p = {'discoverable': item['discoverable'], 'inArchive': item['in_archive'],
-              'lastModified': item['last_modified'], 'withdrawn' : item['withdrawn']}
+              'lastModified': item['last_modified'], 'withdrawn': item['withdrawn']}
     metadata_item = get_metadata_value(2, item['item_id'])
     if metadata_item:
         json_p['metadata'] = metadata_item
 
     if item['item_id'] in handle:
         json_p['handle'] = handle[(2, item['item_id'])]
-    #the params are workspaceitem attributes
+    # the params are workspaceitem attributes
     params = {'owningCollection': collection_id[owningCollectin],
               'multipleTitles': multipleTitles,
               'publishedBefore': publishedBefore,
@@ -703,7 +760,7 @@ def import_bundle():
     Mapped tables: item2bundle, bundle
     """
     global item_id, bundle_id
-    #load item2bundle into dict
+    # load item2bundle into dict
     json_a = read_json("item2bundle.json")
     item2bundle = dict()
     if json_a:
@@ -713,14 +770,14 @@ def import_bundle():
             else:
                 item2bundle[i['item_id']] = [i['bundle_id']]
 
-    #load bundles and map bundles to their primary bitstream ids
+    # load bundles and map bundles to their primary bitstream ids
     json_a = read_json("bundle.json")
     if json_a:
         for i in json_a:
             if i['primary_bitstream_id']:
                 primaryBitstream[i['primary_bitstream_id']] = i['bundle_id']
 
-    #import bundle without primary bitstream id
+    # import bundle without primary bitstream id
     if item2bundle:
         for item in item2bundle.items():
             for bundle in item[1]:
@@ -738,19 +795,20 @@ def import_bundle():
 
     print("Bundle and Item2Bundle were successfully imported!")
 
+
 def import_bitstream():
     """
     Import data into database.
     Mapped tables: bitstream, bundle2bitstream, metadata, most_recent_checksum and checksum_result
     """
     global bitstreamformat_id, primaryBitstream, bitstream2bundle
-    #load bundle2bitstream
+    # load bundle2bitstream
     json_a = read_json("bundle2bitstream.json")
     if json_a:
         for i in json_a:
             bitstream2bundle[i['bitstream_id']] = i['bundle_id']
 
-    #load and import bitstreams
+    # load and import bitstreams
     json_a = read_json("bitstream.json")
     if json_a:
         for i in json_a:
@@ -760,6 +818,9 @@ def import_bitstream():
                 json_p['metadata'] = metadata_bitstream
             json_p['sizeBytes'] = i['size_bytes']
             json_p['checkSum'] = {'checkSumAlgorithm': i['checksum_algorithm'], 'value': i['checksum']}
+            if not i['bitstream_format_id']:
+                log(f'Bitstream {i["bitstream_id"]} does not have a bitstream_format_id. Using {unknown_format_id} instead.')
+                i['bitstream_format_id'] = unknown_format_id
             params = {'internal_id': i['internal_id'],
                       'storeNumber': i['store_number'],
                       'bitstreamFormat': bitstreamformat_id[i['bitstream_format_id']],
@@ -768,11 +829,11 @@ def import_bitstream():
                       'bundle_id': None,
                       'primaryBundle_id': None}
 
-            #if bitstream has bundle, set bundle_id from None to id
+            # if bitstream has bundle, set bundle_id from None to id
             if i['bitstream_id'] in bitstream2bundle:
                 params['bundle_id'] = bundle_id[bitstream2bundle[i['bitstream_id']]]
 
-            #if bitstream is primary bitstream of some bundle, set primaryBundle_id from None to id
+            # if bitstream is primary bitstream of some bundle, set primaryBundle_id from None to id
             if i['bitstream_id'] in primaryBitstream:
                 params['primaryBundle_id'] = bundle_id[primaryBitstream[i['bitstream_id']]]
             try:
@@ -782,18 +843,19 @@ def import_bitstream():
                 log('POST request ' + response.url + ' for id: ' + str(i['bitstream_id']) + ' failed. Status: ' +
                     str(response.status_code))
 
-    #add logos (bitstreams) to collections and communities
+    # add logos (bitstreams) to collections and communities
     add_logo_to_community()
     add_logo_to_collection()
 
-    #do bitstream checksum
-    #fill the tables: most_recent_checksum and checksum_result based on imported bitstreams
+    # do bitstream checksum
+    # fill the tables: most_recent_checksum and checksum_result based on imported bitstreams
     try:
         do_api_post('clarin/import/core/bitstream/checksum', None, None)
     except Exception as e:
         json_e = json.loads(e.args[0])
         log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
     print("Bitstream, bundle2bitstream, most_recent_checksum and checksum_result were successfully imported!")
+
 
 def add_logo_to_community():
     """
@@ -810,6 +872,7 @@ def add_logo_to_community():
                 except:
                     log('POST request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
+
 def add_logo_to_collection():
     """
     Add bitstream to collection as collection logo.
@@ -825,6 +888,7 @@ def add_logo_to_collection():
                 except:
                     log('POST request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
+
 def import_handle_with_url():
     """
     Import handles into database with url.
@@ -832,10 +896,10 @@ def import_handle_with_url():
     Mapped table: handles
     """
     global handle
-    #if handle is empty, read handle file as json
+    # if handle is empty, read handle file as json
     if not handle:
         read_handle()
-    #handle with defined url has key (None, None)
+    # handle with defined url has key (None, None)
     if (None, None) in handle:
         handles_url = handle[(None, None)]
         for i in handles_url:
@@ -847,6 +911,7 @@ def import_handle_with_url():
 
     print("Handles with url were successfully imported!")
 
+
 def import_epersons_and_groups():
     """
     Import part of dspace: epersons and groups.
@@ -857,12 +922,14 @@ def import_epersons_and_groups():
     import_eperson()
     import_group2eperson()
 
+
 def import_metadata():
     """
     Import part of dspace: metadata
     """
     import_metadataschemaregistry()
     import_metadatafieldregistry()
+
 
 def import_hierarchy():
     """
@@ -871,6 +938,7 @@ def import_hierarchy():
     import_community()
     import_collection()
 
+
 def import_bundles_and_bitstreams():
     """
     Import part of dspace: bundles and bitstreams
@@ -878,7 +946,8 @@ def import_bundles_and_bitstreams():
     import_item()
     import_bitstreamformatregistry()
     import_bundle()
-    #import_bitstream()
+    import_bitstream()
+
 
 #call
 
@@ -888,15 +957,15 @@ if perform_import:
     get_data_as_json(database_name1, host1, user1, password1)
     get_data_as_json(database_name2, host2, user2, password2)
 print("Data migraton started!")
-#at the beginning
+# at the beginning
 read_metadata()
 read_handle()
-#not depends on the ather tables
+# not depends on the ather tables
 import_handle_with_url()
 
-#you have to call together
+# you have to call together
 import_metadata()
-#import hierarchy has to call before import group
+# import hierarchy has to call before import group
 import_hierarchy()
 import_epersons_and_groups()
 import_licenses()

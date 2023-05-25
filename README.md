@@ -164,11 +164,11 @@ Update `const.py` as specified near top of this file
 
 ***
 
+## Migration notes:
+- The values of table attributes that describe the last modification time of dspace object (for example attribute `last_modified` in table `Item`) have a value that represents the time when that object was migrated and not the value from migrated database dump.
 
 # OLD MANUAL ===end===
 
-## Migration notes:
-- The values of table attributes that describe the last modification time of dspace object (for example attribute `last_modified` in table `Item`) have a value that represents the time when that object was migrated and not the value from migrated database dump.
 
 # Tests
 
