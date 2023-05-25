@@ -7,12 +7,15 @@ A library by dspace is used to simplify access through python to running
 dspace instance.
 It contains several parts.
 
-## Common requirements
+- [Data import](#data-import)
+- [Testing running instance](#tests)
+
+## Common requirements for all parts
 - For every part (except those run in docker), requirements must be installed before running it for the first time, 
 using following command
 `pip install -r requirements.txt`
 
-- Next insert correct values into `const.py`
+- Next insert correct information into `const.py`
   - `user = "<ADMIN_NAME>"`
   - `password = "<ADMIN_PASSWORD>"`
   - `use_ssl = False  # or True - http or https`
@@ -22,7 +25,8 @@ using following command
   - `be_location = "<SERVER_SUBPATH>"  # e.g. /server/`
   
 
-# How to migrate CLARIN-DSpace5.* to CLARIN-DSpace7.*
+# Data import
+How to migrate CLARIN-DSpace5.* to CLARIN-DSpace7.*
 
 Please note [Migration notes](##migration-notes:) section.
 
@@ -153,6 +157,16 @@ Update `const.py` as specified near top of this file
 ## Migration notes:
 - The values of table attributes that describe the last modification time of dspace object (for example attribute `last_modified` in table `Item`) have a value that represents the time when that object was migrated and not the value from migrated database dump.
 
+# Tests
+
+In order to run tests, use command
+`python -m unittest`
+
+Recommended variation is
+`python -m unittest -v 2> output.txt`
+which leaves result in output.txt
+
+It is possible to run in Pycharm with configuration like so:
 
 
 ## How to write new tests
@@ -173,15 +187,6 @@ See const.py for constants used at testing.
 
 To set up logs, navigate to support.logs.py and modify method set_up_logging.
 
-## Tests
 
-In order to run tests, use command
-`python -m unittest`
-
-Recommended variation is
-`python -m unittest -v 2> output.txt`
-which leaves result in output.txt
-
-It is possible to run in Pycharm with configuration like so:
 
 ![image](https://user-images.githubusercontent.com/88670521/186934112-d0f828fd-a809-4ed8-bbfd-4457b734d8fd.png)
