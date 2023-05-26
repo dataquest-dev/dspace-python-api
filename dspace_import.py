@@ -971,4 +971,3 @@ import_epersons_and_groups()
 import_licenses()
 import_bundles_and_bitstreams()
 
-stop_reauth()

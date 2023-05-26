@@ -7,6 +7,9 @@ from support.logs import log
 from support.logs import Severity
 
 ERROR = Severity.ERROR
+ENABLE_AUTO_REAUTH = False  # if True, we will renew our login each 5 mins, since with longer runs,
+                            # we would be kicked from the server
+                            # it is not necessary currently, it's resolved differently (response 401) in api.post call
 
 
 class DspaceRESTProxy:
@@ -56,8 +59,11 @@ class DspaceRESTProxy:
 rest_proxy = DspaceRESTProxy()
 reauth = threading.Thread(target=rest_proxy.reauthenticate_loop, daemon=True)
 stopevent = threading.Event()
-reauth.start()
+if ENABLE_AUTO_REAUTH:
+    reauth.start()
 def stop_reauth(wait = True):
+    if not ENABLE_AUTO_REAUTH:
+        return
     log("Reauth over", Severity.Trace)
     stopevent.set()
     if wait:
