@@ -60,8 +60,6 @@ class DSpaceObject:
             if '_links' in api_resource:
                 self.links = api_resource['_links']
             else:
-                # TODO - write 'construct self URI method'... all we need is type, UUID and some mapping of type
-                #  to the URI type segment eg community -> communities
                 self.links = {'self': {'href': ''}}
 
     def add_metadata(self, field, value, language=None, authority=None, confidence=-1, place=None):
@@ -213,7 +211,6 @@ class Community(SimpleDSpaceObject):
         @return: dict of Item for API use
         """
         dso_dict = super(Community, self).as_dict()
-        # TODO: More community-specific stuff
         community_dict = {}
         return {**dso_dict, **community_dict}
 

@@ -227,7 +227,7 @@ def import_license_label(id, label, title, is_extended):
         'icon': [0,1]
     }
     r = rest_proxy.d.api_post(url, None, license_label_json)
-    print(r)
+    log(r)
 
 
 def import_license(name, definition, label_id, confirmation, required_info):

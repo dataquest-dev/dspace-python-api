@@ -21,6 +21,7 @@ class DspaceRESTProxy:
     def __init__(self):
         self.response = None
         self.d = DSpaceClient(api_endpoint=const.API_URL, username=const.user, password=const.password)
+        log("Going to authenticate to " + const.API_URL + " with user " + const.user)
         authenticated = self.d.authenticate()
         if not authenticated:
             log(f'Error logging in to dspace REST API at ' + const.API_URL + '! Exiting!', ERROR)
@@ -29,6 +30,7 @@ class DspaceRESTProxy:
         log("Successfully logged in to dspace on " + const.API_URL)
 
     def reauthenticate(self):
+        log("Attempting to re-authenticate.")
         self.d.authenticate()
 
     def get(self, command, params=None, data=None):
@@ -43,7 +45,7 @@ class DspaceRESTProxy:
     def reauthenticate_loop(self):
         while True:
             # time.sleep(5*60)
-            stopevent.wait(60)  # each minute
+            stopevent.wait(5 * 60)  # every 5 minutes seems sufficient
             if stopevent.is_set():
                 log("Reauthenticate loop is over", Severity.DEBUG)
                 break
@@ -56,7 +58,7 @@ reauth = threading.Thread(target=rest_proxy.reauthenticate_loop, daemon=True)
 stopevent = threading.Event()
 reauth.start()
 def stop_reauth(wait = True):
-    print("Reauth over")
+    log("Reauth over", Severity.Trace)
     stopevent.set()
     if wait:
         reauth.join()

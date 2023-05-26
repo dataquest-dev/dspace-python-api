@@ -11,9 +11,9 @@ def check_response(r, additional_message):
     if r is None:
         log("Failed to receive response. " + additional_message, Severity.ERROR)
         raise Exception("No response from server where one was expected")
-    log(str(additional_message) + " Response " + str(r.status_code))
+    log(str(additional_message) + " Response " + str(r.status_code), Severity.DEBUG)
     if r.status_code not in response_map:
-        log("Unexpected response while creating item: " + str(r.status_code) + "; " + r.url + "; " + r.text,
+        log("Unexpected response from backend: " + str(r.status_code) + "; " + r.url + "; " + r.text,
             Severity.WARN)
     else:
         response_map[r.status_code](r)
@@ -22,8 +22,9 @@ def check_response(r, additional_message):
 response_map = {
     201: lambda r: response_success(r),
     200: lambda r: response_success(r),
+    204: lambda r: response_success(r),
     500: lambda r: error(r),
-    400: lambda r: error(r)
+    400: lambda r: error(r),
 }
 
 
@@ -34,6 +35,6 @@ def error(r):
 def response_success(r):
     try:
         r = r.json()
-        log(f'{r["type"]} created successfully!')
+        log(f'{r["type"]} created successfully!', Severity.DEBUG)
     except JSONDecodeError:
-        log("request successfully")
+        log("request successful", Severity.DEBUG)

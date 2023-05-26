@@ -1,8 +1,10 @@
+from support.logs import Severity
+
 with open("cs.csv", encoding='utf-8') as file:
     with open("out.json", "w+", encoding="utf-8") as out_file:
         out_file.write("{\n")
         for line in file.readlines():
-            print(f"parsing line {line}")
+            log(f"parsing line {line}", Severity.Trace)
             sep = line.split(",")
             key = sep[0]
             val = "".join(sep[1:])

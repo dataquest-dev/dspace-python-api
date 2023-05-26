@@ -32,7 +32,6 @@ from ..logs import log, Severity
 def parse_json(response):
     """
     Simple static method to handle ValueError if JSON is invalid in response body
-    TODO: More logging, not just console output
     @param response:
     @return:
     """
@@ -177,9 +176,9 @@ class DSpaceClient:
             r_json = r.json()
             if 'message' in r_json and 'CSRF token' in r_json['message']:
                 if retry:
-                    log('API Post: Already retried... something must be wrong')
+                    log('API Post: Already retried... something must be wrong', Severity.TRACE)
                 else:
-                    log("API Post: Retrying request with updated CSRF token")
+                    log("API Post: Retrying request with updated CSRF token", Severity.TRACE)
                     return self.api_post(url, params=params, json_p=json_p, retry=True)
         elif r.status_code == 401:
             r_json = r.json()
@@ -188,7 +187,7 @@ class DSpaceClient:
                     log('API Post: Already retried... something must be wrong')
                     self.exception401Counter = 0
                 else:
-                    log("API Post: Retrying request with updated CSRF token")
+                    log("API Post: Retrying request with updated CSRF token", Severity.DEBUG)
                     # try to authenticate
                     self.authenticate()
                     # Try to authenticate and repeat the request 3 times - if it won't happen log error
@@ -197,7 +196,6 @@ class DSpaceClient:
                     if self.exception401Counter > 3:
                         retry_value = True
                     return self.api_post(url, params=params, json_p=json_p, retry=retry_value)
-
         check_response(r, "api post")
         return r
 
@@ -333,7 +331,7 @@ class DSpaceClient:
 
     def search_objects(self, query=None, filters=None, dso_type=None):
         """
-        Do a basic search with optional query, filters and dsoType params. TODO: pagination
+        Do a basic search with optional query, filters and dsoType params.
         @param query:   query string
         @param filters: discovery filters as dict eg. {'f.entityType': 'Publication,equals', ... }
         @param dso_type: DSO type to further filter results
@@ -504,8 +502,6 @@ class DSpaceClient:
         @param uuid:    Bundle UUID. This is mutually exclusive to the 'parent' argument, returning just this bundle
         @return:        List of bundles (single UUID bundle result is wrapped in a list before returning)
         """
-        # TODO: It is probably wise to allow the parent UUID to be simply passed as an alternative to having the full
-        #  python object as constructed by this REST client, for more flexible usage.
         bundles = list()
         single_result = False
         if uuid is not None:
@@ -537,8 +533,6 @@ class DSpaceClient:
         @return:        constructed python Bundle object from the response JSON
                         (note: this is a bit inconsistent with create_dso usage where the raw response is returned)
         """
-        # TODO: It is probably wise to allow the parent UUID to be simply passed as an alternative to having the full
-        #  python object as constructed by this REST client, for more flexible usage.
         if parent is None:
             return None
         url = f'{self.API_ENDPOINT}core/items/{parent.uuid}/bundles'
@@ -588,9 +582,6 @@ class DSpaceClient:
                             token, the request will retry once, after the token is refreshed. (default: False)
         @return:            constructed Bitstream object from the API response, or None if the operation failed.
         """
-        # TODO: It is probably wise to allow the bundle UUID to be simply passed as an alternative to having the full
-        #  python object as constructed by this REST client, for more flexible usage.
-        # TODO: Better error detection and handling for file reading
         if metadata is None:
             metadata = {}
         url = f'{self.API_ENDPOINT}core/bundles/{bundle.uuid}/bitstreams'
@@ -673,8 +664,6 @@ class DSpaceClient:
         @param data:    Full JSON data for the new community
         @return:        python Community object constructed from the API response
         """
-        # TODO: To be consistent with other create methods, this should probably also allow a Community object
-        #  to be passed instead of just the UUID as a string
         url = f'{self.API_ENDPOINT}core/communities'
         params = None
         if parent is not None:
@@ -728,8 +717,6 @@ class DSpaceClient:
         @param data:    Full JSON data for the new collection
         @return:        python Collection object constructed from the API response
         """
-        # TODO: To be consistent with other create methods, this should probably also allow a Community object
-        #  to be passed instead of just the UUID as a string
         url = f'{self.API_ENDPOINT}core/collections'
         params = None
         if parent is not None:
@@ -742,7 +729,6 @@ class DSpaceClient:
         @param uuid:    the UUID of the item
         @return:        the raw API response
         """
-        # TODO - return constructed Item object instead, handling errors here?
         url = f'{self.API_ENDPOINT}core/items'
         try:
             id_check = UUID(uuid).version
@@ -795,7 +781,6 @@ class DSpaceClient:
         :return:
         """
         if dso is None or field is None or value is None or not isinstance(dso, DSpaceObject):
-            # TODO: separate these tests, and add better error handling
             log('Invalid or missing DSpace object, field or value string', Severity.WARN)
             return self
 
@@ -828,7 +813,6 @@ class DSpaceClient:
         data = user
         if isinstance(user, User):
             data = user.as_dict()
-            # TODO: Validation. Note, at least here I will just allow a dict instead of the pointless cast<->cast
             # that you see for other DSO types - still figuring out the best way
         params = None
         if token is not None:
@@ -862,6 +846,5 @@ class DSpaceClient:
         data = group
         if isinstance(group, Group):
             data = group.as_dict()
-            # TODO: Validation. Note, at least here I will just allow a dict instead of the pointless cast<->cast
             # that you see for other DSO types - still figuring out the best way
         return Group(api_resource=parse_json(self.create_dso(url, params=None, data=data)))

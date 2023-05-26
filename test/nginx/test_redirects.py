@@ -24,7 +24,6 @@ class RedirectTests(unittest.TestCase):
         going_to = const.FE_url + "/handle/" + handle
         log("Going to" + going_to)
         page = requests.get(going_to, headers={"Accept": "cmdi+xml"})
-        # print("got to", page.url)
         page_soup = BeautifulSoup(page.text, "html.parser")
         template_soup = get_test_soup("works", "html", "html.parser", False)
         self.assertEqual(template_soup, page_soup)
@@ -34,7 +33,6 @@ class RedirectTests(unittest.TestCase):
         handle = get_handle(uuid)
         going_to = const.FE_url + "/handle/" + handle + "?format=cmdi"
         page = requests.get(going_to)
-        # print("got to", page.url)
         page = BeautifulSoup(page.text, 'html.parser')
         original = get_test_soup("works", "html", "html.parser", False)
         self.assertEqual(original, page)

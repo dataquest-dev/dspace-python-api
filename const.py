@@ -2,7 +2,7 @@ import enum
 import sys
 
 import expected
-from support.logs import log, Severity
+from support.logs import log, Severity, add_replacable
 
 user = "test@test.edu"
 password = "admin"
@@ -12,12 +12,12 @@ password = "admin"
 
 # http or https
 use_ssl = False
-host = "localhost"
-# host = "dev-5.pc"
-fe_port = ":4000"
-# fe_port = None
-be_port = ":8080"
-# be_port = None
+# host = "localhost"
+host = "dev-5.pc"
+# fe_port = ":4000"
+fe_port = None
+# be_port = ":8080"
+be_port = None
 be_location = "/server/"
 
 # end of parameters to set
@@ -25,6 +25,7 @@ be_location = "/server/"
 if len(sys.argv) > 1:
     if sys.argv[1] == 'docker':
         if host == 'localhost':
+            add_replacable("host.docker.internal", "localhost")
             log("Changed localhost to host.docker.internal", Severity.DEBUG)
             host = 'host.docker.internal'
 
@@ -43,7 +44,6 @@ test to find out trivial mistakes
 if use_ssl != expected.exp_SSL or host != expected.exp_host or fe_port != expected.exp_FE_port \
         or be_port != expected.exp_BE_port or import_command != expected.exp_import_command:
     main = "Host settings are not what is expected for tests!!"
-    log(main, Severity.INFO)
     log(main + ":", Severity.WARN)
     log("use_ssl: " + str(use_ssl), Severity.WARN)
     log("host: " + str(host), Severity.WARN)
