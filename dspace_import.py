@@ -3,6 +3,7 @@ import os
 
 import const
 from db_dump_to_json import get_data_as_json
+from extract_data import extract_data
 from import_db_const import *
 
 from support.logs import log
@@ -957,6 +958,8 @@ if perform_import:
     get_data_as_json(database_name1, host1, user1, password1)
     get_data_as_json(database_name2, host2, user2, password2)
     log("Database dumps complete.")
+if const.data_import_location is not None:
+    extract_data()
 # at the beginning
 read_metadata()
 read_handle()
