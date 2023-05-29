@@ -116,6 +116,9 @@ location `/dspace/assetstore`.
 they can be obtained by issuing 
   - `docker cp dspacedataimport:/pyimport/logs.txt localfile.txt` for logs
   - `docker cp dspacedataimport:/pyimport/debug.log.txt localfile.txt` for debug logs
+- Docker version does not work, if run on the same machine AND the dspace backend is
+part of docker-compose project. Please run importer from another machine. (this might
+be fixed in the future)
 
 
 # Tests
