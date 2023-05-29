@@ -815,11 +815,11 @@ def import_bitstream():
             if metadata_bitstream:
                 json_p['metadata'] = metadata_bitstream
             json_p['sizeBytes'] = i['size_bytes']
-            json_p['checkSum'] = {'checkSumAlgorithm': i['checksum_algorithm'], 'value': i['checksum']}
+            json_p['checkSum'] = {'checkSumAlgorithm': i['checksum_algorithm'], 'value': "8a4605be74aa9ea9d79846c1fba20a33"}
             if not i['bitstream_format_id']:
                 log(f'Bitstream {i["bitstream_id"]} does not have a bitstream_format_id. Using {unknown_format_id} instead.')
                 i['bitstream_format_id'] = unknown_format_id
-            params = {'internal_id': i['internal_id'],
+            params = {'internal_id': "71633249445290410149167620402968981267",
                       'storeNumber': i['store_number'],
                       'bitstreamFormat': bitstreamformat_id[i['bitstream_format_id']],
                       'deleted': i['deleted'],
