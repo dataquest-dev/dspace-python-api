@@ -25,12 +25,15 @@ response_map = {
     204: lambda r: response_success(r),
     500: lambda r: error(r),
     400: lambda r: error(r),
+    422: lambda r: log_in_debug(r)
 }
 
 
 def error(r):
     raise ConnectionError(r.text)
 
+def log_in_debug(r):
+    log("Received response " + r.status_code, Severity.DEBUG)
 
 def response_success(r):
     try:

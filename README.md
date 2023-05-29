@@ -55,7 +55,7 @@ then copy assetstore folder to `/dspace/assetstore`.
 ## Installation
 Installing clarin 7
 
-TODO I don't think this belongs here, install according to [official](https://wiki.lyrasis.org/display/DSDOC7x/Installing+DSpace) or from [clarin wiki](https://github.com/ufal/clarin-dspace/wiki/Migration-to-DSpace7.2.1.)
+install according to [official](https://wiki.lyrasis.org/display/DSDOC7x/Installing+DSpace) or from [clarin wiki](https://github.com/ufal/clarin-dspace/wiki/Migration-to-DSpace7.2.1.)
 
 1. Clone repository //https://github.com/dataquest-dev/DSpace (branch dtq-dev)
    
@@ -73,8 +73,7 @@ or try these. Note, you have to have Postgres installed.
    3. Now the clarin database for Dspace7 shoudl be created, run the database by command
  `pg_ctl start -D "<PSQL_PATH>\data\"`
 3. If all went right, now there is dspace installed. It needs web server to be deployed, which you need to start.
-If you have no idea what that means, please check 
- 
+
 
 ## Clear database
 
@@ -115,6 +114,8 @@ location `/dspace/assetstore`.
 - The values of table attributes that describe the last modification time of dspace object (for example attribute `last_modified` in table `Item`) have a value that represents the time when that object was migrated and not the value from migrated database dump.
 - If you are interested in logs from import, that were running in docker container,
 they can be obtained by issuing 
+  - `docker cp dspacedataimport:/pyimport/logs.txt localfile.txt` for logs
+  - `docker cp dspacedataimport:/pyimport/debug.log.txt localfile.txt` for debug logs
 
 
 # Tests
