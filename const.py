@@ -20,8 +20,8 @@ fe_port = None
 be_port = None
 be_location = "/server/"
 
-data_import_location = "data.7z"
-# data_import_location = None  # if location is set, .json files will be extracted from specified location into data/
+# data_import_location = "data.zip"
+data_import_location = None  # if location is set, .json files will be extracted from specified location into data/
 
 
 # end of parameters to set
