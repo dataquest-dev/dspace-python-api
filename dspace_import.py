@@ -294,7 +294,7 @@ def import_epersongroup():
     Import data into database.
     Mapped tables: epersongroup
     """
-    global group_id
+    global group_id, collection_id
     json_a = read_json('epersongroup.json')
     # group Administrator and Anonymous already exist
     # we need to remember their id
@@ -913,6 +913,47 @@ def import_handle_with_url():
 
     print("Handles with url were successfully imported!")
 
+def import_user_metadata():
+    """
+    Import data into database.
+    Mapped tables: user_metadata, license_resource_user_allowance
+    """
+    global eperson_id, bitstream_id
+    #read license_resource_user_allowance
+    #mapping eperson_id to mapping_id
+    user_allowance = dict()
+    json_a = read_json("license_resource_user_allowance.json")
+    if json_a:
+        for i in json_a:
+            if i['eperson_id'] in user_allowance:
+                user_allowance[i['eperson_id']].append(i)
+            else:
+                user_allowance[i['eperson_id']] = [i]
+
+    #read license_resource_mapping
+    #mapping bitstream_id to mapping_id
+    resource_mapping = read_json('license_resource_mapping.json')
+    mappings = dict()
+    if resource_mapping:
+        for i in resource_mapping:
+            mappings[i['mapping_id']] = i['bitstream_id']
+
+    #read user_metadata
+    json_a = read_json("user_metadata.json")
+    if json_a:
+        for i in json_a:
+            if i['eperson_id'] in user_allowance:
+                dataUA = user_allowance[i['eperson_id']]
+                for data in dataUA:
+                    json_p = [{'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}]
+                    #bitstream_id[mappings[data['mapping_id']]]
+                    param = {'bitstreamUUID': bitstream_id[870], 'epersonId': eperson_id[i['eperson_id']],
+                             'createdOn': data['created_on'], 'token': data['token']}
+                    try:
+                        do_api_post('clarin/import/usermetadata', param, json_p)
+                    except:
+                        log('POST response clarin/import/usermetadata failed for eperson_id: ' + str(i['eperson_id'])
+                            + ' and bitstream id: ' + str(mappings[data['mapping_id']]))
 
 def import_epersons_and_groups():
     """
@@ -950,7 +991,6 @@ def import_bundles_and_bitstreams():
     import_bundle()
     import_bitstream()
 
-
 # call
 print("Data migraton started!")
 # at the beginning
@@ -966,4 +1006,6 @@ import_hierarchy()
 import_epersons_and_groups()
 import_licenses()
 import_bundles_and_bitstreams()
+#import_user_metadata()
 print("Data migration is completed!")
+
