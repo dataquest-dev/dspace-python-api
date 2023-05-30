@@ -902,15 +902,15 @@ def import_user_metadata():
             if i['eperson_id'] in user_allowance:
                 dataUA = user_allowance[i['eperson_id']]
                 for data in dataUA:
-                    json_p = {'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}
+                    json_p = [{'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}]
                     #bitstream_id[mappings[data['mapping_id']]]
-                    param = {'bitstreamUUID': bitstream_id[838], 'epersonId': eperson_id[i['eperson_id']],
+                    param = {'bitstreamUUID': bitstream_id[870], 'epersonId': eperson_id[i['eperson_id']],
                              'createdOn': data['created_on'], 'token': data['token']}
                     try:
                         do_api_post('clarin/import/usermetadata', param, json_p)
                     except:
-                        log('POST response clarin/import/usermetadata failed for eperson_id: ' + i['eperson_id']
-                            + ' and bitstream id: ' + mappings[data['mapping_id']])
+                        log('POST response clarin/import/usermetadata failed for eperson_id: ' + str(i['eperson_id'])
+                            + ' and bitstream id: ' + str(mappings[data['mapping_id']]))
 
 def import_epersons_and_groups():
     """
@@ -960,5 +960,5 @@ import_hierarchy()
 import_epersons_and_groups()
 import_licenses()
 import_bundles_and_bitstreams()
-import_user_metadata()
+#import_user_metadata()
 print("Data migration is completed!")
