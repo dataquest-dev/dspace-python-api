@@ -920,7 +920,7 @@ def import_user_metadata():
     """
     global eperson_id, bitstream_id
     #read license_resource_user_allowance
-    #mapping eperson_id to mapping_id
+    #mapping eperson_id to data
     user_allowance = dict()
     json_a = read_json("license_resource_user_allowance.json")
     if json_a:
@@ -941,13 +941,16 @@ def import_user_metadata():
     #read user_metadata
     json_a = read_json("user_metadata.json")
     if json_a:
+        #for each user metadata
         for i in json_a:
             if i['eperson_id'] in user_allowance:
+                #get license_resource_user_allowance of eperson
                 dataUA = user_allowance[i['eperson_id']]
+                #for each data from license_resource_user_allowance of eperson
                 for data in dataUA:
                     json_p = [{'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}]
                     #bitstream_id[mappings[data['mapping_id']]]
-                    param = {'bitstreamUUID': bitstream_id[870], 'epersonId': eperson_id[i['eperson_id']],
+                    param = {'bitstreamUUID': bitstream_id[mappings[data['mapping_id']]], 'epersonId': eperson_id[i['eperson_id']],
                              'createdOn': data['created_on'], 'token': data['token']}
                     try:
                         do_api_post('clarin/import/usermetadata', param, json_p)
@@ -1006,6 +1009,6 @@ import_hierarchy()
 import_epersons_and_groups()
 import_licenses()
 import_bundles_and_bitstreams()
-#import_user_metadata()
+import_user_metadata()
 print("Data migration is completed!")
 
