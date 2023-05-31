@@ -48,6 +48,9 @@ specific for clarin-5. First one is database usually marked as `clarin-dspace` a
 is usually `clarin-utilities`. Set `perform-import` to True (if it isn't already).
 4. Copy assetstore from dspace5 to installed dspace 7. If installation folder is `/dspace/`
 then copy assetstore folder to `/dspace/assetstore`.
+   - if copying assetstore to docker use `docker cp assetstore dspace:/dspace/`
+     - first argument to `docker cp` which is `assetstore` is local folder of assetstore, which you obviously need prepared
+     - second argument `dspace:/dspace/` denotes container `dspace` and within it path `/dspace/` since that is where assetsotre resides
 5. Run docker from downloaded repository root in step 1 as 
 
    `docker build -t dspace_import . && docker run --name dspacedataimport dspace_import`
