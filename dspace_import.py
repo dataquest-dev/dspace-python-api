@@ -294,7 +294,7 @@ def import_epersongroup():
     Import data into database.
     Mapped tables: epersongroup
     """
-    global group_id
+    global group_id, collection_id
     json_a = read_json('epersongroup.json')
     # group Administrator and Anonymous already exist
     # we need to remember their id
@@ -385,20 +385,24 @@ def import_group2group():
     json_a = read_json('group2group.json')
     if json_a:
         for i in json_a:
-            try:
-                response = do_api_post('clarin/eperson/groups/' + group_id[i['parent_id']][0] + '/subgroups', None,
-                                       const.API_URL + 'eperson/groups/' + group_id[i['child_id']][0])
-            except Exception as e:
-                # Sometimes the Exception `e` is type of `int`
-                if isinstance(e, int):
-                    log('POST request ' + 'clarin/eperson/groups/' + group_id[i['parent_id']][0] + '/subgroups' +
-                        ' failed.')
-                else:
-                    print("type:" + str(e.args[0]))
-                    # json_e = json.loads(str(e.args[0]))
-                    log('POST request ' + response.url + ' for id: ' + str(group_id[i['parent_id']][0]) +
-                        ' failed. Status: ' + str(response.status_code))
-                    # log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
+            parents = group_id[i['parent_id']]
+            childs = group_id[i['child_id']]
+            for parent in parents:
+                for child in childs:
+                    try:
+                        response = do_api_post('clarin/eperson/groups/' + parent + '/subgroups', None,
+                                    const.API_URL + 'eperson/groups/' + child)
+                    except Exception as e:
+                        # Sometimes the Exception `e` is type of `int`
+                        if isinstance(e, int):
+                            log('POST request ' + 'clarin/eperson/groups/' + parent + '/subgroups' +
+                                ' failed.')
+                        else:
+                            print("type:" + str(e.args[0]))
+                            # json_e = json.loads(str(e.args[0]))
+                            log('POST request ' + response.url + ' for id: ' + str(parent) +
+                                ' failed. Status: ' + str(response.status_code))
+                            # log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
     print("Group2group was successfully imported!")
 
 
@@ -909,7 +913,6 @@ def import_handle_with_url():
 
     print("Handles with url were successfully imported!")
 
-
 def import_user_metadata():
     """
     Import data into database.
@@ -943,8 +946,8 @@ def import_user_metadata():
                 dataUA = user_allowance[i['eperson_id']]
                 for data in dataUA:
                     json_p = [{'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}]
-                    #bitstream_id[287]
-                    param = {'bitstreamUUID': bitstream_id[mappings[data['mapping_id']]], 'epersonId': eperson_id[i['eperson_id']],
+                    #bitstream_id[mappings[data['mapping_id']]]
+                    param = {'bitstreamUUID': bitstream_id[870], 'epersonId': eperson_id[i['eperson_id']],
                              'createdOn': data['created_on'], 'token': data['token']}
                     try:
                         do_api_post('clarin/import/usermetadata', param, json_p)
@@ -988,7 +991,6 @@ def import_bundles_and_bitstreams():
     import_bundle()
     import_bitstream()
 
-
 # call
 print("Data migraton started!")
 # at the beginning
@@ -1004,5 +1006,6 @@ import_hierarchy()
 import_epersons_and_groups()
 import_licenses()
 import_bundles_and_bitstreams()
-import_user_metadata()
+#import_user_metadata()
 print("Data migration is completed!")
+
