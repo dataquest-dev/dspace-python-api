@@ -221,7 +221,7 @@ def import_licenses():
             except:
                 log('POST request ' + response.url + ' failed. Status code ' + str(response.status_code))
 
-    print("License_label, Extended_mapping, License_definitions were successfully imported!")
+    log("License_label, Extended_mapping, License_definitions were successfully imported!")
 
 
 def import_registrationdata():
@@ -239,7 +239,7 @@ def import_registrationdata():
                 json_e = json.loads(e.args[0])
                 log('POST request' + json_e['path'] + ' for email: ' + i['email'] + ' failed. Status: ' +
                     str(json_e['status']))
-    print("Registration data was successfully imported!")
+    log("Registration data was successfully imported!")
 
 
 def import_bitstreamformatregistry():
@@ -289,8 +289,7 @@ def import_bitstreamformatregistry():
 
     #write bitstreamformat_id into file
     write_dict_into_json('bitstreamformat.json', bitstreamformat_id)
-
-    print("Bitstream format registry was successfully imported!")
+    log("Bitstream format registry was successfully imported!")
 
 
 def import_epersongroup():
@@ -336,9 +335,11 @@ def import_epersongroup():
                 except:
                     log('POST request ' + response.url + ' for id: ' + str(i['eperson_group_id']) +
                         ' failed. Status: ' + str(response.status_code))
+
     # write group into file
     write_dict_into_json('group.json', group_id)
-    print("Eperson group was successfully imported!")
+    log("Eperson group was successfully imported!")
+
 
 
 def import_eperson():
@@ -377,9 +378,11 @@ def import_eperson():
             except:
                 log('POST request ' + response.url + ' for id: ' + str(i['eperson_id']) +
                     ' failed. Status: ' + str(response.status_code))
+
     # write unknownformat into file
     write_dict_into_json('eperson.json', eperson_id)
-    print("Eperson was successfully imported!")
+    log("Eperson was successfully imported!")
+
 
 
 def import_group2group():
@@ -404,13 +407,13 @@ def import_group2group():
                             log('POST request ' + 'clarin/eperson/groups/' + parent + '/subgroups' +
                                 ' failed.')
                         else:
-                            print("type:" + str(e.args[0]))
-                            # json_e = json.loads(str(e.args[0]))
                             log('POST request ' + response.url + ' for id: ' + str(parent) +
                                 ' failed. Status: ' + str(response.status_code))
+
                             # log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
 
-    print("Group2group was successfully imported!")
+    log("Group2group was successfully imported!")
+
 
 
 def import_group2eperson():
@@ -429,7 +432,7 @@ def import_group2eperson():
                 json_e = json.loads(e.args[0])
                 log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
 
-    print("Epersongroup2eperson was successfully imported!")
+    log("Epersongroup2eperson was successfully imported!")
 
 
 def import_metadataschemaregistry():
@@ -467,9 +470,12 @@ def import_metadataschemaregistry():
                 if not found:
                     log('POST request ' + response.url + ' for id: ' + str(
                         i['metadata_schema_id']) + ' failed. Status: ' + str(response.status_code))
+
     # write metadata schema registry into file
     write_dict_into_json('metadataschemaregistry.json', metadata_schema_id)
-    print("MetadataSchemaRegistry was successfully imported!")
+
+    log("MetadataSchemaRegistry was successfully imported!")
+
 
 
 def import_metadatafieldregistry():
@@ -505,9 +511,12 @@ def import_metadatafieldregistry():
                 if not found:
                     log('POST request ' + response.url + ' for id: ' + str(
                         i['metadata_field_id']) + ' failed. Status: ' + str(response.status_code))
+
     # write metadata field into file
     write_dict_into_json('metadatafield.json', metadata_field_id)
-    print("MetadataFieldRegistry was successfully imported!")
+  
+    log("MetadataFieldRegistry was successfully imported!")
+
 
 
 def import_community():
@@ -585,7 +594,8 @@ def import_community():
     # write community into file
     write_dict_into_json('community.json', community_id)
 
-    print("Community and Community2Community were successfully imported!")
+    log("Community and Community2Community were successfully imported!")
+
 
 
 def import_collection():
@@ -666,7 +676,9 @@ def import_collection():
 
     # write unknownformat into file
     write_dict_into_json('collection.json', collection_id)
-    print("Collection and Community2collection were successfully imported!")
+
+    log("Collection and Community2collection were successfully imported!")
+
 
 
 def import_item():
@@ -694,7 +706,8 @@ def import_item():
 
     # write workspaceitem into file
     write_dict_into_json('workspaceitem.json', workspaceitem_id)
-    print("Workspaceitem was successfully imported!")
+   
+    log("Workspaceitem was successfully imported!")
 
     # create workflowitem
     # workflowitem is created from workspaceitem
@@ -717,7 +730,8 @@ def import_item():
 
     # write workflowitem into file
     write_dict_into_json('workflowitem.json', workflowitem_id)
-    print("Cwf_workflowitem was successfully imported!")
+ 
+    log("Cwf_workflowitem was successfully imported!")
 
     # create other items
     for i in items.values():
@@ -740,8 +754,8 @@ def import_item():
 
     # write item into file
     write_dict_into_json('item.json', item_id)
-    print("Item and Collection2item were successfully imported!")
-
+   
+    log("Item and Collection2item were successfully imported!")
 
 def import_workspaceitem(item, owningCollectin, multipleTitles, publishedBefore, multipleFiles, stagereached,
                          pageReached):
@@ -819,9 +833,12 @@ def import_bundle():
                     bundle_id[bundle] = convert_response_to_json(response)['uuid']
                 except:
                     log('POST request ' + response.url + ' failed. Status: ' + str(response.status_code))
+
     # write bundle into file
     write_dict_into_json('bundle.json', bundle_id)
-    print("Bundle and Item2Bundle were successfully imported!")
+
+    log("Bundle and Item2Bundle were successfully imported!")
+
 
 
 def import_bitstream():
@@ -865,6 +882,7 @@ def import_bitstream():
             if i['bitstream_id'] in primaryBitstream:
                 params['primaryBundle_id'] = bundle_id[primaryBitstream[i['bitstream_id']]]
             try:
+                log('Going to process Bitstream with internal_id: ' + str(i['internal_id']))
                 response = do_api_post('clarin/import/core/bitstream', params, json_p)
                 bitstream_id[i['bitstream_id']] = convert_response_to_json(response)['id']
             except:
@@ -883,7 +901,7 @@ def import_bitstream():
     except Exception as e:
         json_e = json.loads(e.args[0])
         log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
-    print("Bitstream, bundle2bitstream, most_recent_checksum and checksum_result were successfully imported!")
+    log("Bitstream, bundle2bitstream, most_recent_checksum and checksum_result were successfully imported!")
 
 
 def add_logo_to_community():
@@ -938,7 +956,7 @@ def import_handle_with_url():
             except:
                 log('POST response ' + response.url + ' failed. Status: ' + str(response.status_code))
 
-    print("Handles with url were successfully imported!")
+    log("Handles with url were successfully imported!")
 
 def import_user_metadata():
     """
@@ -1048,8 +1066,9 @@ def insert_data_into_dicts():
     bitstream_id = get_dict_from_json("bitstream.json")
 
 # call
-print("Data migraton started!")
 #insert_data_into_dicts()
+log("Data migraton started!")
+
 # at the beginning
 read_metadata()
 read_handle()
@@ -1064,4 +1083,6 @@ import_epersons_and_groups()
 import_licenses()
 import_bundles_and_bitstreams()
 #import_user_metadata()
-print("Data migration is completed!")
+
+log("Data migration is completed!")
+
