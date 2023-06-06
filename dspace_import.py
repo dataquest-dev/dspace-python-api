@@ -11,6 +11,7 @@ from support.dspace_proxy import rest_proxy
 # global params
 labels = dict()
 eperson_id = dict()
+userReg2eperson = dict()
 group_id = dict()
 metadata_schema_id = dict()
 metadata_field_id = dict()
@@ -347,14 +348,14 @@ def import_eperson():
     Import data into database.
     Mapped tables: eperson, metadatavalue
     """
-    global eperson_id
+    global eperson_id, userReg2eperson
     # read user_registration
     json_a = read_json("user_registration.json")
     # create dict from user registrations
     user_reg = dict()
     if json_a:
         for i in json_a:
-            user_reg[i['eperson_id']] = {'organization': i['organization'], 'confirmation': i['confirmation']}
+            user_reg[i['email']] = {'organization': i['organization'], 'confirmation': i['confirmation'], 'id': i['eperson_id']}
 
     json_a = read_json('eperson.json')
     if json_a:
@@ -365,8 +366,10 @@ def import_eperson():
                       'email': i['email'], 'password': i['password']}
             if metadata:
                 json_p['metadata'] = metadata
-            if i['eperson_id'] in user_reg:
-                param = user_reg[i['eperson_id']]
+            if i['email'] in user_reg:
+                userReg2eperson[user_reg[i['email']]['id']] = i['eperson_id']
+                del user_reg[i['email']]['id']
+                param = user_reg[i['email']]
                 param['userRegistration'] = True
             else:
                 param = {'userRegistration': False}
@@ -960,12 +963,12 @@ def import_handle_with_url():
 
 def import_user_metadata():
     """
-    Import data into database.
-    Mapped tables: user_metadata, license_resource_user_allowance
-    """
+        Import data into database.
+        Mapped tables: user_metadata, license_resource_user_allowance
+        """
     global eperson_id, bitstream_id
-    #read license_resource_user_allowance
-    #mapping eperson_id to data
+    # read license_resource_user_allowance
+    # mapping eperson_id to mapping_id
     user_allowance = dict()
     json_a = read_json("license_resource_user_allowance.json")
     if json_a:
@@ -975,35 +978,30 @@ def import_user_metadata():
             else:
                 user_allowance[i['eperson_id']] = [i]
 
-    #read license_resource_mapping
-    #mapping bitstream_id to mapping_id
+    # read license_resource_mapping
+    # mapping bitstream_id to mapping_id
     resource_mapping = read_json('license_resource_mapping.json')
     mappings = dict()
     if resource_mapping:
         for i in resource_mapping:
             mappings[i['mapping_id']] = i['bitstream_id']
 
-    #read user_metadata
+    # read user_metadata
     json_a = read_json("user_metadata.json")
     if json_a:
-        #for each user metadata
         for i in json_a:
             if i['eperson_id'] in user_allowance:
-                #get license_resource_user_allowance of eperson
                 dataUA = user_allowance[i['eperson_id']]
-                #for each data from license_resource_user_allowance of eperson
                 for data in dataUA:
                     json_p = [{'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}]
-                    #bitstream_id[mappings[data['mapping_id']]]
-                    param = {'bitstreamUUID': bitstream_id[mappings[data['mapping_id']]], 'epersonId': eperson_id[i['eperson_id']],
-                             'createdOn': data['created_on'], 'token': data['token']}
                     try:
+                        param = {'bitstreamUUID': bitstream_id[mappings[data['mapping_id']]], 'epersonUUID': eperson_id[userReg2eperson[i['eperson_id']]],
+                             'createdOn': data['created_on'], 'token': data['token']}
+
                         do_api_post('clarin/import/usermetadata', param, json_p)
                     except:
-                        log('POST response clarin/import/usermetadata failed for eperson_id: ' + str(i['eperson_id'])
+                        log('POST response clarin/import/usermetadata failed for user registration id: ' + str(i['eperson_id'])
                             + ' and bitstream id: ' + str(mappings[data['mapping_id']]))
-
-    print("User metadata and License edit user allowance were successfully imported!")
 
 def import_epersons_and_groups():
     """
@@ -1082,7 +1080,7 @@ import_hierarchy()
 import_epersons_and_groups()
 import_licenses()
 import_bundles_and_bitstreams()
-#import_user_metadata()
+import_user_metadata()
 
 log("Data migration is completed!")
 
