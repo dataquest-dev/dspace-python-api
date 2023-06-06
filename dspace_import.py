@@ -11,6 +11,7 @@ from support.dspace_proxy import rest_proxy
 # global params
 labels = dict()
 eperson_id = dict()
+email2epersonId = dict()
 userReg2eperson = dict()
 group_id = dict()
 metadata_schema_id = dict()
@@ -348,14 +349,7 @@ def import_eperson():
     Import data into database.
     Mapped tables: eperson, metadatavalue
     """
-    global eperson_id, userReg2eperson
-    # read user_registration
-    json_a = read_json("user_registration.json")
-    # create dict from user registrations
-    user_reg = dict()
-    if json_a:
-        for i in json_a:
-            user_reg[i['email']] = {'organization': i['organization'], 'confirmation': i['confirmation'], 'id': i['eperson_id']}
+    global eperson_id, email2epersonId
 
     json_a = read_json('eperson.json')
     if json_a:
@@ -364,17 +358,10 @@ def import_eperson():
             json_p = {'selfRegistered': i['self_registered'], 'requireCertificate': i['require_certificate'],
                       'netid': i['netid'], 'canLogIn': i['can_log_in'], 'lastActive': i['last_active'],
                       'email': i['email'], 'password': i['password']}
+            email2epersonId[i['email']] = i['eperson_id']
             if metadata:
                 json_p['metadata'] = metadata
-            if i['email'] in user_reg:
-                userReg2eperson[user_reg[i['email']]['id']] = i['eperson_id']
-                del user_reg[i['email']]['id']
-                param = user_reg[i['email']]
-                param['userRegistration'] = True
-            else:
-                param = {'userRegistration': False}
-            param['selfRegistered'] = i['self_registered']
-            param['lastActive'] = i['last_active']
+            param = {'selfRegistered': i['self_registered'], 'lastActive': i['last_active']}
             try:
                 response = do_api_post('clarin/import/eperson', param, json_p)
                 eperson_id[i['eperson_id']] = convert_response_to_json(response)['id']
@@ -386,7 +373,25 @@ def import_eperson():
     write_dict_into_json('eperson.json', eperson_id)
     log("Eperson was successfully imported!")
 
-
+def import_user_registration():
+    """
+    Import data into database.
+    Mapped tables: user_registration
+    """
+    global eperson_id, userReg2eperson, email2epersonId
+    # read user_registration
+    json_a = read_json("user_registration.json")
+    if json_a:
+        for i in json_a:
+            #mapping user registration id to email
+            userReg2eperson[i['eperson_id']] = email2epersonId[i['email']]
+            json_p = {'email': i['email'], 'organization': i['organization'],
+                      'confirmation': i['confirmation'], 'ePersonID': eperson_id[email2epersonId[i['email']]]}
+            try:
+                response = do_api_post('clarin/import/userregistration', None, json_p)
+            except:
+                log('POST request clarin/import/userregistration for id: ' + str(i['eperson_id']) +
+                    ' failed. Status: ' + str(response.status_code))
 
 def import_group2group():
     """
@@ -1011,6 +1016,7 @@ def import_epersons_and_groups():
     import_epersongroup()
     import_group2group()
     import_eperson()
+    import_user_registration()
     import_group2eperson()
 
 
