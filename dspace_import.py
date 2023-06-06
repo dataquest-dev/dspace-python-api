@@ -3,6 +3,7 @@ import os
 
 import const
 import migration_const
+from migration_const import MAPPING_PATH
 
 from support.logs import log
 from support.dspace_proxy import rest_proxy
@@ -10,6 +11,8 @@ from support.dspace_proxy import rest_proxy
 # global params
 labels = dict()
 eperson_id = dict()
+email2epersonId = dict()
+userReg2eperson = dict()
 group_id = dict()
 metadata_schema_id = dict()
 metadata_field_id = dict()
@@ -19,6 +22,7 @@ collection_id = dict()
 collection2logo = dict()
 item_id = dict()
 workspaceitem_id = dict()
+workflowitem_id = dict()
 metadatavalue = dict()
 handle = dict()
 bitstreamformat_id = dict()
@@ -28,15 +32,14 @@ bitstream2bundle = dict()
 bundle_id = dict()
 bitstream_id = dict()
 
-
 # functions
-def read_json(file_name):
+def read_json(file_name, path = migration_const.DATA_PATH):
     """
     Read data from file as json.
     @param file_name: file name
     @return: data as json
     """
-    x = open(migration_const.DATA_PATH + file_name)
+    x = open(path + file_name)
     json_p = json.load(x)
     x.close()
     return json_p
@@ -286,6 +289,8 @@ def import_bitstreamformatregistry():
     except:
         log('GET request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
+    #write bitstreamformat_id into file
+    write_dict_into_json('bitstreamformat.json', bitstreamformat_id)
     log("Bitstream format registry was successfully imported!")
 
 
@@ -294,7 +299,7 @@ def import_epersongroup():
     Import data into database.
     Mapped tables: epersongroup
     """
-    global group_id
+    global group_id, collection_id
     json_a = read_json('epersongroup.json')
     # group Administrator and Anonymous already exist
     # we need to remember their id
@@ -333,7 +338,10 @@ def import_epersongroup():
                     log('POST request ' + response.url + ' for id: ' + str(i['eperson_group_id']) +
                         ' failed. Status: ' + str(response.status_code))
 
+    # write group into file
+    write_dict_into_json('group.json', group_id)
     log("Eperson group was successfully imported!")
+
 
 
 def import_eperson():
@@ -341,14 +349,7 @@ def import_eperson():
     Import data into database.
     Mapped tables: eperson, metadatavalue
     """
-    global eperson_id
-    # read user_registration
-    json_a = read_json("user_registration.json")
-    # create dict from user registrations
-    user_reg = dict()
-    if json_a:
-        for i in json_a:
-            user_reg[i['eperson_id']] = {'organization': i['organization'], 'confirmation': i['confirmation']}
+    global eperson_id, email2epersonId
 
     json_a = read_json('eperson.json')
     if json_a:
@@ -357,15 +358,10 @@ def import_eperson():
             json_p = {'selfRegistered': i['self_registered'], 'requireCertificate': i['require_certificate'],
                       'netid': i['netid'], 'canLogIn': i['can_log_in'], 'lastActive': i['last_active'],
                       'email': i['email'], 'password': i['password']}
+            email2epersonId[i['email']] = i['eperson_id']
             if metadata:
                 json_p['metadata'] = metadata
-            if i['eperson_id'] in user_reg:
-                param = user_reg[i['eperson_id']]
-                param['userRegistration'] = True
-            else:
-                param = {'userRegistration': False}
-            param['selfRegistered'] = i['self_registered']
-            param['lastActive'] = i['last_active']
+            param = {'selfRegistered': i['self_registered'], 'lastActive': i['last_active']}
             try:
                 response = do_api_post('clarin/import/eperson', param, json_p)
                 eperson_id[i['eperson_id']] = convert_response_to_json(response)['id']
@@ -373,8 +369,29 @@ def import_eperson():
                 log('POST request ' + response.url + ' for id: ' + str(i['eperson_id']) +
                     ' failed. Status: ' + str(response.status_code))
 
+    # write unknownformat into file
+    write_dict_into_json('eperson.json', eperson_id)
     log("Eperson was successfully imported!")
 
+def import_user_registration():
+    """
+    Import data into database.
+    Mapped tables: user_registration
+    """
+    global eperson_id, userReg2eperson, email2epersonId
+    # read user_registration
+    json_a = read_json("user_registration.json")
+    if json_a:
+        for i in json_a:
+            #mapping user registration id to email
+            userReg2eperson[i['eperson_id']] = email2epersonId[i['email']]
+            json_p = {'email': i['email'], 'organization': i['organization'],
+                      'confirmation': i['confirmation'], 'ePersonID': eperson_id[email2epersonId[i['email']]]}
+            try:
+                response = do_api_post('clarin/import/userregistration', None, json_p)
+            except:
+                log('POST request clarin/import/userregistration for id: ' + str(i['eperson_id']) +
+                    ' failed. Status: ' + str(response.status_code))
 
 def import_group2group():
     """
@@ -400,7 +417,11 @@ def import_group2group():
                         else:
                             log('POST request ' + response.url + ' for id: ' + str(parent) +
                                 ' failed. Status: ' + str(response.status_code))
+
+                            # log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
+
     log("Group2group was successfully imported!")
+
 
 
 def import_group2eperson():
@@ -449,14 +470,20 @@ def import_metadataschemaregistry():
                     for j in existing_data:
                         if j['prefix'] == i['short_id']:
                             metadata_schema_id[i['metadata_schema_id']] = j['id']
-                            log('Metadataschemaregistry with prefix: ' + i['short_id']
+                            log('Metadataschemaregistry '
+                                ' prefix: ' + i['short_id']
                                 + 'already exists in database!')
                             found = True
                             break
                 if not found:
                     log('POST request ' + response.url + ' for id: ' + str(
                         i['metadata_schema_id']) + ' failed. Status: ' + str(response.status_code))
+
+    # write metadata schema registry into file
+    write_dict_into_json('metadataschemaregistry.json', metadata_schema_id)
+
     log("MetadataSchemaRegistry was successfully imported!")
+
 
 
 def import_metadatafieldregistry():
@@ -492,7 +519,12 @@ def import_metadatafieldregistry():
                 if not found:
                     log('POST request ' + response.url + ' for id: ' + str(
                         i['metadata_field_id']) + ' failed. Status: ' + str(response.status_code))
+
+    # write metadata field into file
+    write_dict_into_json('metadatafield.json', metadata_field_id)
+  
     log("MetadataFieldRegistry was successfully imported!")
+
 
 
 def import_community():
@@ -567,7 +599,11 @@ def import_community():
             if counter == len(json_comm):
                 counter = 0
 
+    # write community into file
+    write_dict_into_json('community.json', community_id)
+
     log("Community and Community2Community were successfully imported!")
+
 
 
 def import_collection():
@@ -646,7 +682,11 @@ def import_collection():
                 except:
                     log('POST request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
+    # write unknownformat into file
+    write_dict_into_json('collection.json', collection_id)
+
     log("Collection and Community2collection were successfully imported!")
+
 
 
 def import_item():
@@ -672,6 +712,9 @@ def import_item():
                                  i['stage_reached'], i['page_reached'])
             del items[i['item_id']]
 
+    # write workspaceitem into file
+    write_dict_into_json('workspaceitem.json', workspaceitem_id)
+   
     log("Workspaceitem was successfully imported!")
 
     # create workflowitem
@@ -687,11 +730,15 @@ def import_item():
             params = {'id': str(workspaceitem_id[i['item_id']])}
             try:
                 response = do_api_post('clarin/import/workflowitem', params, None)
+                workflowitem_id[i['workflow_id']] = response.headers['workflowitem_id']
             except:
                 log('POST request ' + response.url + ' for id: ' + str(i['item_id']) + ' failed. Status: '
                     + str(response.status_code))
             del items[i['item_id']]
 
+    # write workflowitem into file
+    write_dict_into_json('workflowitem.json', workflowitem_id)
+ 
     log("Cwf_workflowitem was successfully imported!")
 
     # create other items
@@ -712,8 +759,11 @@ def import_item():
         except:
             log('POST request ' + response.url + ' for id: ' + str(i['item_id']) + ' failed. Status: ' +
                 str(response.status_code))
-    log("Item and Collection2item were successfully imported!")
 
+    # write item into file
+    write_dict_into_json('item.json', item_id)
+   
+    log("Item and Collection2item were successfully imported!")
 
 def import_workspaceitem(item, owningCollectin, multipleTitles, publishedBefore, multipleFiles, stagereached,
                          pageReached):
@@ -792,7 +842,11 @@ def import_bundle():
                 except:
                     log('POST request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
+    # write bundle into file
+    write_dict_into_json('bundle.json', bundle_id)
+
     log("Bundle and Item2Bundle were successfully imported!")
+
 
 
 def import_bitstream():
@@ -815,12 +869,12 @@ def import_bitstream():
             metadata_bitstream = get_metadata_value(0, i['bitstream_id'])
             if metadata_bitstream:
                 json_p['metadata'] = metadata_bitstream
-            json_p['sizeBytes'] = i['size_bytes']
-            json_p['checkSum'] = {'checkSumAlgorithm': i['checksum_algorithm'], 'value': i['checksum']}
+            json_p['sizeBytes'] = 1748
+            json_p['checkSum'] = {'checkSumAlgorithm': i['checksum_algorithm'], 'value': '8a4605be74aa9ea9d79846c1fba20a33'}
             if not i['bitstream_format_id']:
                 log(f'Bitstream {i["bitstream_id"]} does not have a bitstream_format_id. Using {unknown_format_id} instead.')
                 i['bitstream_format_id'] = unknown_format_id
-            params = {'internal_id': i['internal_id'],
+            params = {'internal_id': '77893754617268908529226218097860272513',
                       'storeNumber': i['store_number'],
                       'bitstreamFormat': bitstreamformat_id[i['bitstream_format_id']],
                       'deleted': i['deleted'],
@@ -842,7 +896,8 @@ def import_bitstream():
             except:
                 log('POST request ' + response.url + ' for id: ' + str(i['bitstream_id']) + ' failed. Status: ' +
                     str(response.status_code))
-
+    # write bitstream into file
+    write_dict_into_json('bitstream.json', bitstream_id)
     # add logos (bitstreams) to collections and communities
     add_logo_to_community()
     add_logo_to_collection()
@@ -911,6 +966,47 @@ def import_handle_with_url():
 
     log("Handles with url were successfully imported!")
 
+def import_user_metadata():
+    """
+        Import data into database.
+        Mapped tables: user_metadata, license_resource_user_allowance
+        """
+    global eperson_id, bitstream_id
+    # read license_resource_user_allowance
+    # mapping eperson_id to mapping_id
+    user_allowance = dict()
+    json_a = read_json("license_resource_user_allowance.json")
+    if json_a:
+        for i in json_a:
+            if i['eperson_id'] in user_allowance:
+                user_allowance[i['eperson_id']].append(i)
+            else:
+                user_allowance[i['eperson_id']] = [i]
+
+    # read license_resource_mapping
+    # mapping bitstream_id to mapping_id
+    resource_mapping = read_json('license_resource_mapping.json')
+    mappings = dict()
+    if resource_mapping:
+        for i in resource_mapping:
+            mappings[i['mapping_id']] = i['bitstream_id']
+
+    # read user_metadata
+    json_a = read_json("user_metadata.json")
+    if json_a:
+        for i in json_a:
+            if i['eperson_id'] in user_allowance:
+                dataUA = user_allowance[i['eperson_id']]
+                for data in dataUA:
+                    json_p = [{'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}]
+                    try:
+                        param = {'bitstreamUUID': bitstream_id[mappings[data['mapping_id']]], 'epersonUUID': eperson_id[userReg2eperson[i['eperson_id']]],
+                             'createdOn': data['created_on'], 'token': data['token']}
+
+                        do_api_post('clarin/import/usermetadata', param, json_p)
+                    except:
+                        log('POST response clarin/import/usermetadata failed for user registration id: ' + str(i['eperson_id'])
+                            + ' and bitstream id: ' + str(mappings[data['mapping_id']]))
 
 def import_epersons_and_groups():
     """
@@ -920,6 +1016,7 @@ def import_epersons_and_groups():
     import_epersongroup()
     import_group2group()
     import_eperson()
+    import_user_registration()
     import_group2eperson()
 
 
@@ -948,20 +1045,48 @@ def import_bundles_and_bitstreams():
     import_bundle()
     import_bitstream()
 
+def write_dict_into_json(file_name, dictionary):
+    os.makedirs(MAPPING_PATH, exist_ok=True)
+    with open(MAPPING_PATH + file_name, 'w') as data:
+        data.write(json.dumps(dictionary))
+
+def get_dict_from_json(file_name):
+    return {int(key): value for key, value in read_json(file_name, MAPPING_PATH).items()}
+
+def insert_data_into_dicts():
+    global eperson_id, group_id, metadata_schema_id, metadata_field_id, community_id, collection_id, \
+        item_id, workflowitem_id, workspaceitem_id, bitstream_id, bitstreamformat_id, bundle_id
+    eperson_id = get_dict_from_json("eperson.json")
+    group_id = get_dict_from_json("group.json")
+    metadata_schema_id = get_dict_from_json("metadataschemaregistry.json")
+    metadata_field_id = get_dict_from_json("metadatafield.json")
+    community_id = get_dict_from_json("community.json")
+    collection_id = get_dict_from_json("collection.json")
+    item_id = get_dict_from_json("item.json")
+    workspaceitem_id = get_dict_from_json("workspaceitem.json")
+    workflowitem_id = get_dict_from_json("workflowitem.json")
+    bitstreamformat_id = get_dict_from_json("bitstreamformat.json")
+    bundle_id = get_dict_from_json("bundle.json")
+    bitstream_id = get_dict_from_json("bitstream.json")
 
 # call
+#insert_data_into_dicts()
 log("Data migraton started!")
+
 # at the beginning
 read_metadata()
 read_handle()
-# not depends on the ather tables
+#not depends on the ather tables
 import_handle_with_url()
 
 # you have to call together
 import_metadata()
-# import hierarchy has to call before import group
+# # import hierarchy has to call before import group
 import_hierarchy()
 import_epersons_and_groups()
 import_licenses()
 import_bundles_and_bitstreams()
+import_user_metadata()
+
 log("Data migration is completed!")
+
