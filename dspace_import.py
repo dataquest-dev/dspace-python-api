@@ -12,7 +12,7 @@ from support.dspace_proxy import rest_proxy
 labels = dict()
 eperson_id = dict()
 email2epersonId = dict()
-userReg2eperson = dict()
+userRegistration_id = dict()
 group_id = dict()
 metadata_schema_id = dict()
 metadata_field_id = dict()
@@ -395,24 +395,29 @@ def import_user_registration():
     Import data into database.
     Mapped tables: user_registration
     """
-    global eperson_id, userReg2eperson, email2epersonId, statistics
+    global eperson_id, email2epersonId, userRegistration_id, statistics
     imported = 0
     # read user_registration
     json_a = read_json("user_registration.json")
     if json_a:
         for i in json_a:
-            #mapping user registration id to email
-            userReg2eperson[i['eperson_id']] = email2epersonId[i['email']]
             json_p = {'email': i['email'], 'organization': i['organization'],
-                      'confirmation': i['confirmation'], 'ePersonID': eperson_id[email2epersonId[i['email']]]}
+                      'confirmation': i['confirmation']}
+            if i['email'] in email2epersonId:
+                json_p['ePersonID'] = eperson_id[email2epersonId[i['email']]]
+            else:
+                json_p['ePersonID'] = None
             try:
                 response = do_api_post('clarin/import/userregistration', None, json_p)
+                userRegistration_id[i['eperson_id']] = convert_response_to_json(response)['id']
                 imported+=1
             except:
                 log('POST request clarin/import/userregistration for id: ' + str(i['eperson_id']) +
                     ' failed. Status: ' + str(response.status_code))
 
     statistics['user_registration'] = (len(json_a), imported)
+    # write user_registration into file
+    write_dict_into_json('userRegistration.json', userRegistration_id)
     log("User registration was successfully imported!")
 
 def import_group2group():
@@ -1067,9 +1072,8 @@ def import_user_metadata():
                 for data in dataUA:
                     json_p = [{'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}]
                     try:
-                        param = {'bitstreamUUID': bitstream_id[mappings[data['mapping_id']]], 'epersonUUID': eperson_id[userReg2eperson[i['eperson_id']]],
-                             'createdOn': data['created_on'], 'token': data['token']}
-
+                        param = {'bitstreamUUID': bitstream_id[mappings[data['mapping_id']]],
+                             'createdOn': data['created_on'], 'token': data['token'], 'userRegistrationID': userRegistration_id[i['eperson_id']]}
                         do_api_post('clarin/import/usermetadata', param, json_p)
                         imported+=1
                     except:
@@ -1134,23 +1138,24 @@ def at_the_end_of_import():
 
 def insert_data_into_dicts():
     global eperson_id, group_id, metadata_schema_id, metadata_field_id, community_id, collection_id, \
-        item_id, workflowitem_id, workspaceitem_id, bitstream_id, bitstreamformat_id, bundle_id
-    eperson_id = get_dict_from_json("eperson.json")
-    group_id = get_dict_from_json("group.json")
+        item_id, workflowitem_id, workspaceitem_id, bitstream_id, bitstreamformat_id, bundle_id, userRegistration_id
     metadata_schema_id = get_dict_from_json("metadataschemaregistry.json")
     metadata_field_id = get_dict_from_json("metadatafield.json")
-    community_id = get_dict_from_json("community.json")
     collection_id = get_dict_from_json("collection.json")
-    item_id = get_dict_from_json("item.json")
+    community_id = get_dict_from_json("community.json")
+    group_id = get_dict_from_json("group.json")
+    eperson_id = get_dict_from_json("eperson.json")
+    userRegistration_id = get_dict_from_json("userRegistration.json")
     workspaceitem_id = get_dict_from_json("workspaceitem.json")
     workflowitem_id = get_dict_from_json("workflowitem.json")
+    item_id = get_dict_from_json("item.json")
     bitstreamformat_id = get_dict_from_json("bitstreamformat.json")
     bundle_id = get_dict_from_json("bundle.json")
     bitstream_id = get_dict_from_json("bitstream.json")
 
 # call
 #insert_data_into_dicts()
-log("Data migraton started!")
+#log("Data migraton started!")
 
 # at the beginning
 read_metadata()
@@ -1160,12 +1165,12 @@ import_handle_with_url()
 
 # you have to call together
 import_metadata()
-# # import hierarchy has to call before import group
+#import hierarchy has to call before import group
 import_hierarchy()
 import_epersons_and_groups()
 import_licenses()
 import_bundles_and_bitstreams()
-#import_user_metadata()
+import_user_metadata()
 at_the_end_of_import()
 log("Data migration is completed!")
 
