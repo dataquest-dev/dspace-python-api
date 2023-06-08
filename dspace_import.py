@@ -1050,10 +1050,7 @@ def import_user_metadata():
     json_a = read_json("license_resource_user_allowance.json")
     if json_a:
         for i in json_a:
-            if i['eperson_id'] in user_allowance:
-                user_allowance[i['eperson_id']].append(i)
-            else:
-                user_allowance[i['eperson_id']] = [i]
+            user_allowance[i['transaction_id']] = i
 
     # read license_resource_mapping
     # mapping bitstream_id to mapping_id
@@ -1067,18 +1064,20 @@ def import_user_metadata():
     json_a = read_json("user_metadata.json")
     if json_a:
         for i in json_a:
-            if i['eperson_id'] in user_allowance:
-                dataUA = user_allowance[i['eperson_id']]
-                for data in dataUA:
-                    json_p = [{'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}]
-                    try:
-                        param = {'bitstreamUUID': bitstream_id[mappings[data['mapping_id']]],
-                             'createdOn': data['created_on'], 'token': data['token'], 'userRegistrationId': userRegistration_id[i['eperson_id']]}
-                        do_api_post('clarin/import/usermetadata', param, json_p)
-                        imported+=1
-                    except:
-                        log('POST response clarin/import/usermetadata failed for user registration id: ' + str(i['eperson_id'])
-                            + ' and bitstream id: ' + str(mappings[data['mapping_id']]))
+            if i['transaction_id'] in user_allowance:
+                dataUA = user_allowance[i['transaction_id']]
+                json_p = [{'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}]
+                try:
+                    param = {'bitstreamUUID': bitstream_id[mappings[dataUA['mapping_id']]],
+                             'createdOn': dataUA['created_on'], 'token': dataUA['token'],
+                             'userRegistrationId': userRegistration_id[i['eperson_id']]}
+                    do_api_post('clarin/import/usermetadata', param, json_p)
+                    imported += 1
+                except:
+                    log('POST response clarin/import/usermetadata failed for user registration id: ' + str(
+                        i['eperson_id'])
+                        + ' and bitstream id: ' + str(mappings[dataUA['mapping_id']]))
+
 
     statistics['user_metadata'] = (len(json_a), imported)
     log("User metadata successfully imported!")
@@ -1161,15 +1160,15 @@ log("Data migraton started!")
 read_metadata()
 read_handle()
 #not depends on the ather tables
-#import_handle_with_url()
+import_handle_with_url()
 
 # you have to call together
-#import_metadata()
+import_metadata()
 #import hierarchy has to call before import group
-#import_hierarchy()
-#import_epersons_and_groups()
-#import_licenses()
-#import_bundles_and_bitstreams()
+import_hierarchy()
+import_epersons_and_groups()
+import_licenses()
+import_bundles_and_bitstreams()
 import_user_metadata()
 at_the_end_of_import()
 log("Data migration is completed!")
