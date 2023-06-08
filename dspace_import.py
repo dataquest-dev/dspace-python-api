@@ -199,7 +199,7 @@ def import_licenses():
                 labels[i['label_id']] = created_label
             except:
                 log('POST request ' + response.url + ' failed. Status code ' + str(response.status_code))
-    statistics['license_label'] = (len(json_a), imported)
+        statistics['license_label'] = (len(json_a), imported)
 
     # read license label extended mapping
     extended_label = dict()
@@ -226,7 +226,7 @@ def import_licenses():
                 imported+=1
             except:
                 log('POST request ' + response.url + ' failed. Status code ' + str(response.status_code))
-    statistics['license_definition'] = (len(json_a), imported)
+        statistics['license_definition'] = (len(json_a), imported)
     log("License_label, Extended_mapping, License_definitions were successfully imported!")
 
 
@@ -248,7 +248,7 @@ def import_registrationdata():
                 json_e = json.loads(e.args[0])
                 log('POST request' + json_e['path'] + ' for email: ' + i['email'] + ' failed. Status: ' +
                     str(json_e['status']))
-    statistics['registrationdata'] = (len(json_a), imported)
+        statistics['registrationdata'] = (len(json_a), imported)
     log("Registration data was successfully imported!")
 
 
@@ -295,7 +295,7 @@ def import_bitstreamformatregistry():
                     else:
                         log('POST request ' + response.url + ' for id: ' + str(i['bitstream_format_id']) +
                             ' failed. Status: ' + str(response.status_code))
-        statistics['bitstreamformatregistry'] = (len(json_a), imported)
+            statistics['bitstreamformatregistry'] = (len(json_a), imported)
     except:
         log('GET request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
@@ -347,8 +347,10 @@ def import_epersongroup():
                     log('POST request ' + response.url + ' for id: ' + str(i['eperson_group_id']) +
                         ' failed. Status: ' + str(response.status_code))
             imported+=1
-
-    statistics['epersongroup'] = (len(json_a),  statistics['epersongroup'][1] + imported)
+        if 'epersongroup' in statistics:
+            statistics['epersongroup'] = (len(json_a),  statistics['epersongroup'][1] + imported)
+        else:
+            statistics['epersongroup'] = (len(json_a), imported)
     log("Eperson group was successfully imported!")
 
 
@@ -380,7 +382,7 @@ def import_eperson():
                 log('POST request ' + response.url + ' for id: ' + str(i['eperson_id']) +
                     ' failed. Status: ' + str(response.status_code))
 
-    statistics['eperson'] = (len(json_a), imported)
+        statistics['eperson'] = (len(json_a), imported)
     log("Eperson was successfully imported!")
 
 def import_user_registration():
@@ -408,7 +410,7 @@ def import_user_registration():
                 log('POST request clarin/import/userregistration for id: ' + str(i['eperson_id']) +
                     ' failed. Status: ' + str(response.status_code))
 
-    statistics['user_registration'] = (len(json_a), imported)
+        statistics['user_registration'] = (len(json_a), imported)
     log("User registration was successfully imported!")
 
 def import_group2group():
@@ -440,7 +442,7 @@ def import_group2group():
 
                             # log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
 
-    statistics['group2group'] = (len(json_a), imported)
+        statistics['group2group'] = (len(json_a), imported)
     log("Group2group was successfully imported!")
 
 
@@ -463,7 +465,7 @@ def import_group2eperson():
                 json_e = json.loads(e.args[0])
                 log('POST request ' + json_e['path'] + ' failed. Status: ' + str(json_e['status']))
 
-    statistics['epersongroup2eperson'] = (len(json_a), imported)
+        statistics['epersongroup2eperson'] = (len(json_a), imported)
     log("Epersongroup2eperson was successfully imported!")
 
 
@@ -506,7 +508,7 @@ def import_metadataschemaregistry():
                     log('POST request ' + response.url + ' for id: ' + str(
                         i['metadata_schema_id']) + ' failed. Status: ' + str(response.status_code))
 
-    statistics['metadataschemaregistry'] = (len(json_a), imported)
+        statistics['metadataschemaregistry'] = (len(json_a), imported)
     log("MetadataSchemaRegistry was successfully imported!")
 
 
@@ -548,7 +550,7 @@ def import_metadatafieldregistry():
                     log('POST request ' + response.url + ' for id: ' + str(
                         i['metadata_field_id']) + ' failed. Status: ' + str(response.status_code))
 
-    statistics['metadatafieldregistry'] = (len(json_a), imported)
+        statistics['metadatafieldregistry'] = (len(json_a), imported)
     log("MetadataFieldRegistry was successfully imported!")
 
 
@@ -578,7 +580,7 @@ def import_community():
             else:
                 child[child_id] = parent_id
 
-    statistics['community'] = (len(json_comm), 0)
+        statistics['community'] = (len(json_comm), 0)
     if json_comm:
         counter = 0
         while json_comm:
@@ -631,8 +633,9 @@ def import_community():
             if counter == len(json_comm):
                 counter = 0
 
-    statistics['community'] = (statistics['community'][0], importedComm)
-    statistics['epersongroup'] = (0, importedGroup)
+        if 'community' in statistics:
+            statistics['community'] = (statistics['community'][0], importedComm)
+        statistics['epersongroup'] = (0, importedGroup)
     log("Community and Community2Community were successfully imported!")
 
 
@@ -718,8 +721,8 @@ def import_collection():
                 except:
                     log('POST request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
-    statistics['collection'] = (len(json_a), importedColl)
-    statistics['epersongroup'] = (0, statistics['epersongroup'][1] + importedGroup)
+        statistics['collection'] = (len(json_a), importedColl)
+        statistics['epersongroup'] = (0, statistics['epersongroup'][1] + importedGroup)
     log("Collection and Community2collection were successfully imported!")
 
 
@@ -738,8 +741,7 @@ def import_item():
     if json_a:
         for i in json_a:
             items[i['item_id']] = i
-
-    statistics['item'] = (len(json_a), 0)
+        statistics['item'] = (len(json_a), 0)
 
     # create item and workspaceitem
     json_a = read_json("workspaceitem.json")
@@ -752,7 +754,7 @@ def import_item():
             imported += 1
             del items[i['item_id']]
 
-    statistics['workspaceitem'] = (len(json_a), imported)
+        statistics['workspaceitem'] = (len(json_a), imported)
     importedItem += imported
     log("Workspaceitem was successfully imported!")
 
@@ -777,7 +779,7 @@ def import_item():
                     + str(response.status_code))
             del items[i['item_id']]
 
-    statistics['workflowitem'] = (len(json_a), imported)
+        statistics['workflowitem'] = (len(json_a), imported)
     importedItem+=imported
     log("Cwf_workflowitem was successfully imported!")
 
@@ -886,7 +888,7 @@ def import_bundle():
                 except:
                     log('POST request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
-    statistics['item2bundle'] = (statistics['item2bundle'][0], imported)
+        statistics['item2bundle'] = (statistics['item2bundle'][0], imported)
     log("Bundle and Item2Bundle were successfully imported!")
 
 
@@ -941,7 +943,7 @@ def import_bitstream():
                 log('POST request ' + response.url + ' for id: ' + str(i['bitstream_id']) + ' failed. Status: ' +
                     str(response.status_code))
 
-    statistics['bitstream'] = (len(json_a), imported)
+        statistics['bitstream'] = (len(json_a), imported)
     #add logos (bitstreams) to collections and communities
     add_logo_to_community()
     add_logo_to_collection()
@@ -1053,7 +1055,7 @@ def import_user_metadata():
                         + ' and bitstream id: ' + str(mappings[dataUA['mapping_id']]))
 
 
-    statistics['user_metadata'] = (len(json_a), imported)
+        statistics['user_metadata'] = (len(json_a), imported)
     log("User metadata successfully imported!")
 
 def import_epersons_and_groups():
@@ -1093,16 +1095,14 @@ def import_bundles_and_bitstreams():
     import_bundle()
     import_bitstream()
 
-def get_dict_from_json(file_name):
-    return {int(key): value for key, value in read_json(file_name, MAPPING_PATH).items()}
-
 def at_the_end_of_import():
     global imported_handle, statistics
     json_a = read_json("handle.json")
     statistics['handle'] = (len(json_a), imported_handle)
     #write statistic into log
+    log("Statistics:")
     for key, value in statistics.items():
-        log(key + ": " + value[0] + " expected and imported " + value[1])
+        log(key + ": " + str(value[0]) + " expected and imported " + str(value[1]))
 
 # call
 log("Data migraton started!")
@@ -1123,4 +1123,3 @@ import_bundles_and_bitstreams()
 import_user_metadata()
 at_the_end_of_import()
 log("Data migration is completed!")
-
