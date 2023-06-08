@@ -3,8 +3,6 @@ import os
 
 import const
 import migration_const
-from migration_const import MAPPING_PATH
-
 from support.logs import log
 from support.dspace_proxy import rest_proxy
 
