@@ -33,6 +33,7 @@ bundle_id = dict()
 bitstream_id = dict()
 statistics = dict()
 imported_handle = 0
+
 # functions
 def read_json(file_name, path = migration_const.DATA_PATH):
     """
@@ -300,8 +301,6 @@ def import_bitstreamformatregistry():
     except:
         log('GET request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
-    #write bitstreamformat_id into file
-    write_dict_into_json('bitstreamformat.json', bitstreamformat_id)
     log("Bitstream format registry was successfully imported!")
 
 
@@ -351,8 +350,6 @@ def import_epersongroup():
                         ' failed. Status: ' + str(response.status_code))
             imported+=1
 
-    # write group into file
-    write_dict_into_json('group.json', group_id)
     statistics['epersongroup'] = (len(json_a),  statistics['epersongroup'][1] + imported)
     log("Eperson group was successfully imported!")
 
@@ -385,8 +382,6 @@ def import_eperson():
                 log('POST request ' + response.url + ' for id: ' + str(i['eperson_id']) +
                     ' failed. Status: ' + str(response.status_code))
 
-    # write unknownformat into file
-    write_dict_into_json('eperson.json', eperson_id)
     statistics['eperson'] = (len(json_a), imported)
     log("Eperson was successfully imported!")
 
@@ -416,8 +411,6 @@ def import_user_registration():
                     ' failed. Status: ' + str(response.status_code))
 
     statistics['user_registration'] = (len(json_a), imported)
-    # write user_registration into file
-    write_dict_into_json('userRegistration.json', userRegistration_id)
     log("User registration was successfully imported!")
 
 def import_group2group():
@@ -515,8 +508,6 @@ def import_metadataschemaregistry():
                     log('POST request ' + response.url + ' for id: ' + str(
                         i['metadata_schema_id']) + ' failed. Status: ' + str(response.status_code))
 
-    # write metadata schema registry into file
-    write_dict_into_json('metadataschemaregistry.json', metadata_schema_id)
     statistics['metadataschemaregistry'] = (len(json_a), imported)
     log("MetadataSchemaRegistry was successfully imported!")
 
@@ -559,8 +550,6 @@ def import_metadatafieldregistry():
                     log('POST request ' + response.url + ' for id: ' + str(
                         i['metadata_field_id']) + ' failed. Status: ' + str(response.status_code))
 
-    # write metadata field into file
-    write_dict_into_json('metadatafield.json', metadata_field_id)
     statistics['metadatafieldregistry'] = (len(json_a), imported)
     log("MetadataFieldRegistry was successfully imported!")
 
@@ -644,8 +633,6 @@ def import_community():
             if counter == len(json_comm):
                 counter = 0
 
-    # write community into file
-    write_dict_into_json('community.json', community_id)
     statistics['community'] = (statistics['community'][0], importedComm)
     statistics['epersongroup'] = (0, importedGroup)
     log("Community and Community2Community were successfully imported!")
@@ -733,8 +720,6 @@ def import_collection():
                 except:
                     log('POST request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
-    # write unknownformat into file
-    write_dict_into_json('collection.json', collection_id)
     statistics['collection'] = (len(json_a), importedColl)
     statistics['epersongroup'] = (0, statistics['epersongroup'][1] + importedGroup)
     log("Collection and Community2collection were successfully imported!")
@@ -769,8 +754,6 @@ def import_item():
             imported += 1
             del items[i['item_id']]
 
-    # write workspaceitem into file
-    write_dict_into_json('workspaceitem.json', workspaceitem_id)
     statistics['workspaceitem'] = (len(json_a), imported)
     importedItem += imported
     log("Workspaceitem was successfully imported!")
@@ -796,8 +779,6 @@ def import_item():
                     + str(response.status_code))
             del items[i['item_id']]
 
-    # write workflowitem into file
-    write_dict_into_json('workflowitem.json', workflowitem_id)
     statistics['workflowitem'] = (len(json_a), imported)
     importedItem+=imported
     log("Cwf_workflowitem was successfully imported!")
@@ -823,8 +804,6 @@ def import_item():
             log('POST request ' + response.url + ' for id: ' + str(i['item_id']) + ' failed. Status: ' +
                 str(response.status_code))
 
-    # write item into file
-    write_dict_into_json('item.json', item_id)
     statistics['item'] = (statistics['item'][0], importedItem)
     log("Item and Collection2item were successfully imported!")
 
@@ -909,8 +888,6 @@ def import_bundle():
                 except:
                     log('POST request ' + response.url + ' failed. Status: ' + str(response.status_code))
 
-    # write bundle into file
-    write_dict_into_json('bundle.json', bundle_id)
     statistics['item2bundle'] = (statistics['item2bundle'][0], imported)
     log("Bundle and Item2Bundle were successfully imported!")
 
@@ -965,8 +942,7 @@ def import_bitstream():
             except:
                 log('POST request ' + response.url + ' for id: ' + str(i['bitstream_id']) + ' failed. Status: ' +
                     str(response.status_code))
-    # write bitstream into file
-    #write_dict_into_json('bitstream.json', bitstream_id)
+
     statistics['bitstream'] = (len(json_a), imported)
     #add logos (bitstreams) to collections and communities
     add_logo_to_community()
@@ -1045,7 +1021,7 @@ def import_user_metadata():
     global eperson_id, bitstream_id, statistics, userRegistration_id
     imported = 0
     # read license_resource_user_allowance
-    # mapping eperson_id to mapping_id
+    # mapping transaction_id to mapping_id
     user_allowance = dict()
     json_a = read_json("license_resource_user_allowance.json")
     if json_a:
@@ -1119,11 +1095,6 @@ def import_bundles_and_bitstreams():
     import_bundle()
     import_bitstream()
 
-def write_dict_into_json(file_name, dictionary):
-    os.makedirs(MAPPING_PATH, exist_ok=True)
-    with open(MAPPING_PATH + file_name, 'w') as data:
-        data.write(json.dumps(dictionary))
-
 def get_dict_from_json(file_name):
     return {int(key): value for key, value in read_json(file_name, MAPPING_PATH).items()}
 
@@ -1135,25 +1106,7 @@ def at_the_end_of_import():
     for key, value in statistics.items():
         log(key + ": " + value[0] + " expected and imported " + value[1])
 
-def insert_data_into_dicts():
-    global eperson_id, group_id, metadata_schema_id, metadata_field_id, community_id, collection_id, \
-        item_id, workflowitem_id, workspaceitem_id, bitstream_id, bitstreamformat_id, bundle_id, userRegistration_id
-    metadata_schema_id = get_dict_from_json("metadataschemaregistry.json")
-    metadata_field_id = get_dict_from_json("metadatafield.json")
-    collection_id = get_dict_from_json("collection.json")
-    community_id = get_dict_from_json("community.json")
-    group_id = get_dict_from_json("group.json")
-    eperson_id = get_dict_from_json("eperson.json")
-    userRegistration_id = get_dict_from_json("userRegistration.json")
-    workspaceitem_id = get_dict_from_json("workspaceitem.json")
-    workflowitem_id = get_dict_from_json("workflowitem.json")
-    item_id = get_dict_from_json("item.json")
-    bitstreamformat_id = get_dict_from_json("bitstreamformat.json")
-    bundle_id = get_dict_from_json("bundle.json")
-    bitstream_id = get_dict_from_json("bitstream.json")
-
 # call
-insert_data_into_dicts()
 log("Data migraton started!")
 
 # at the beginning
