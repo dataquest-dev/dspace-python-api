@@ -966,9 +966,9 @@ def import_bitstream():
                 log('POST request ' + response.url + ' for id: ' + str(i['bitstream_id']) + ' failed. Status: ' +
                     str(response.status_code))
     # write bitstream into file
-    write_dict_into_json('bitstream.json', bitstream_id)
+    #write_dict_into_json('bitstream.json', bitstream_id)
     statistics['bitstream'] = (len(json_a), imported)
-    # add logos (bitstreams) to collections and communities
+    #add logos (bitstreams) to collections and communities
     add_logo_to_community()
     add_logo_to_collection()
 
@@ -1042,7 +1042,7 @@ def import_user_metadata():
         Import data into database.
         Mapped tables: user_metadata, license_resource_user_allowance
         """
-    global eperson_id, bitstream_id, statistics
+    global eperson_id, bitstream_id, statistics, userRegistration_id
     imported = 0
     # read license_resource_user_allowance
     # mapping eperson_id to mapping_id
@@ -1073,7 +1073,7 @@ def import_user_metadata():
                     json_p = [{'metadataKey': i['metadata_key'], 'metadataValue': i['metadata_value']}]
                     try:
                         param = {'bitstreamUUID': bitstream_id[mappings[data['mapping_id']]],
-                             'createdOn': data['created_on'], 'token': data['token'], 'userRegistrationID': userRegistration_id[i['eperson_id']]}
+                             'createdOn': data['created_on'], 'token': data['token'], 'userRegistrationId': userRegistration_id[i['eperson_id']]}
                         do_api_post('clarin/import/usermetadata', param, json_p)
                         imported+=1
                     except:
@@ -1154,22 +1154,22 @@ def insert_data_into_dicts():
     bitstream_id = get_dict_from_json("bitstream.json")
 
 # call
-#insert_data_into_dicts()
-#log("Data migraton started!")
+insert_data_into_dicts()
+log("Data migraton started!")
 
 # at the beginning
 read_metadata()
 read_handle()
 #not depends on the ather tables
-import_handle_with_url()
+#import_handle_with_url()
 
 # you have to call together
-import_metadata()
+#import_metadata()
 #import hierarchy has to call before import group
-import_hierarchy()
-import_epersons_and_groups()
-import_licenses()
-import_bundles_and_bitstreams()
+#import_hierarchy()
+#import_epersons_and_groups()
+#import_licenses()
+#import_bundles_and_bitstreams()
 import_user_metadata()
 at_the_end_of_import()
 log("Data migration is completed!")
