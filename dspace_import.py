@@ -701,8 +701,8 @@ def import_item():
         metadata_item = get_metadata_value(2, i['item_id'])
         if metadata_item:
             json_p['metadata'] = metadata_item
-        if i['item_id'] in handle:
-            json_p['handle'] = handle[(2, i['item_id'])]
+        if (2, i['item_id']) in handle:
+            json_p['handle'] = handle[(2, i['item_id'])][0]['handle']
         params = {'owningCollection': collection_id[i['owning_collection']],
                   'epersonUUID': eperson_id[i['submitter_id']]}
         try:
@@ -730,8 +730,8 @@ def import_workspaceitem(item, owningCollectin, multipleTitles, publishedBefore,
     if metadata_item:
         json_p['metadata'] = metadata_item
 
-    if item['item_id'] in handle:
-        json_p['handle'] = handle[(2, item['item_id'])]
+    if (2, item['item_id']) in handle:
+        json_p['handle'] = handle[(2, item['item_id'])][0]['handle']
     # the params are workspaceitem attributes
     params = {'owningCollection': collection_id[owningCollectin],
               'multipleTitles': multipleTitles,
@@ -911,6 +911,25 @@ def import_handle_with_url():
 
     log("Handles with url were successfully imported!")
 
+def import_handle_without_object():
+    """
+    Import handles which have not objects into database.
+    Other handles are imported by dspace objects.
+    Mapped table: handles
+    """
+    if (2, None) not in handle:
+        log("Handles without objects were not imported, because they don't exist!")
+        return
+
+    handles = handle[(2, None)]
+    for i in handles:
+        json_p = {'handle': i['handle'], 'resourceTypeID': i['resource_type_id']}
+        try:
+            response = do_api_post('clarin/import/handle', None, json_p)
+        except:
+            log('POST response clarin/import/handle failed. Status: ' + str(response.status_code))
+
+    log("Handles without object were successfully imported!")
 
 def import_epersons_and_groups():
     """
@@ -955,7 +974,9 @@ log("Data migraton started!")
 read_metadata()
 read_handle()
 # not depends on the ather tables
+import_handle_without_object()
 import_handle_with_url()
+
 
 # you have to call together
 import_metadata()
