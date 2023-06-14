@@ -536,10 +536,10 @@ def import_community():
                 # resource_type_id for community is 4
                 if (4, i['community_id']) in handle:
                     handle_comm = handle[(4, i['community_id'])][0]
-                    json_p = {'handle': handle_comm['handle']}
+                    json_p['handle'] = handle_comm['handle']
                 metadatavalue_comm = get_metadata_value(4, i['community_id'])
                 if metadatavalue_comm:
-                    json_p = {'metadata': metadatavalue_comm}
+                    json_p['metadata'] = metadatavalue_comm
                 # create community
                 parent_id = None
                 if i_id in child:
