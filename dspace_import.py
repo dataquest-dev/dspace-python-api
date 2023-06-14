@@ -369,7 +369,8 @@ def import_eperson():
             metadata = get_metadata_value(7, i['eperson_id'])
             json_p = {'selfRegistered': i['self_registered'], 'requireCertificate': i['require_certificate'],
                       'netid': i['netid'], 'canLogIn': i['can_log_in'], 'lastActive': i['last_active'],
-                      'email': i['email'], 'password': i['password']}
+                      'email': i['email'], 'password': i['password'], 'welcomeInfo': i['welcome_info'],
+                      'canEditSubmissionMetadata': i['can_edit_submission_metadata']}
             email2epersonId[i['email']] = i['eperson_id']
             if metadata:
                 json_p['metadata'] = metadata
@@ -1013,6 +1014,7 @@ def import_handle_with_url():
 
     log("Handles with url were successfully imported!")
 
+
 def import_user_metadata():
     """
         Import data into database.
@@ -1058,6 +1060,23 @@ def import_user_metadata():
         statistics['user_metadata'] = (len(json_a), imported)
     log("User metadata successfully imported!")
 
+
+def import_tasklistitem():
+    """
+     Import data into database.
+     Mapped table: tasklistitem
+     """
+    global workflowitem_id, eperson_id
+    json_a = read_json("tasklistitem.json")
+    for i in json_a:
+        try:
+            params = {'epersonUUID': eperson_id[i['eperson_id']], 'workflowitem_id': workflowitem_id[i['workflow_id']]}
+            response = do_api_post('clarin/eperson/groups/tasklistitem', params, None)
+        except:
+            log('POST request clarin/eperson/groups/tasklistitem failed.')
+    log("Tasklistitem was sucessfully imported!")
+
+
 def import_epersons_and_groups():
     """
     Import part of dspace: epersons and groups.
@@ -1091,6 +1110,7 @@ def import_bundles_and_bitstreams():
     Import part of dspace: bundles and bitstreams
     """
     import_item()
+    import_tasklistitem()
     import_bitstreamformatregistry()
     import_bundle()
     import_bitstream()
