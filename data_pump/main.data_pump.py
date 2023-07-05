@@ -21,8 +21,8 @@ from utils import read_json
 
 def at_the_end_of_import(handle_class_p, statistics_dict):
     # write statistic about handles
-    handle_json_a = read_json("handle.json")
-    statistics_dict['handle'] = (len(handle_json_a),
+    handle_json_list = read_json("handle.json")
+    statistics_dict['handle'] = (len(handle_json_list),
                                  handle_class_p.get_imported_handle())
     # write statistic into log
     logging.info("Statistics:")
@@ -48,6 +48,7 @@ if __name__ == "__main__":
                       var.community_id_dict,
                       var.collection_id_dict,
                       var.collection2logo_dict,
+                      var.temp_item2group_dict,
                       var.statistics_dict)
     import_registrationdata(var.statistics_dict)
     import_epersongroup(metadata_class,
@@ -72,6 +73,7 @@ if __name__ == "__main__":
                 var.item_id_dict,
                 var.collection_id_dict,
                 var.eperson_id_dict,
+                var.temp_item2group_dict,
                 var.statistics_dict)
     import_tasklistitem(var.workflowitem_id_dict,
                         var.eperson_id_dict,

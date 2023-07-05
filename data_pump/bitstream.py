@@ -28,19 +28,19 @@ def import_bitstream(metadata_class,
     imported = 0
 
     # load bundle2bitstream
-    bundle2bitstream_json_a = read_json(bundle2bitstream_json_name)
-    if bundle2bitstream_json_a:
-        for bundle2bitstream in bundle2bitstream_json_a:
+    bundle2bitstream_json_list = read_json(bundle2bitstream_json_name)
+    if bundle2bitstream_json_list:
+        for bundle2bitstream in bundle2bitstream_json_list:
             bitstream2bundle_dict[bundle2bitstream['bitstream_id']] = \
                 bundle2bitstream['bundle_id']
 
     # load and import bitstreams
-    bitstream_json_a = read_json(bitstream_json_name)
-    if not bitstream_json_a:
+    bitstream_json_list = read_json(bitstream_json_name)
+    if not bitstream_json_list:
         logging.info("Bitstream JSON is empty.")
         return
     counter = 0
-    for bitstream in bitstream_json_a:
+    for bitstream in bitstream_json_list:
         if counter % 500 == 0:
             # do bitstream checksum
             # do this after every 500 imported bitstreams,
@@ -57,7 +57,7 @@ def import_bitstream(metadata_class,
         counter += 1
         bitstream_json_p = {}
         metadata_bitstream_dict = \
-            metadata_class.get_metadata_value(0, bitstream['bitstream_id'])
+            metadata_class.get_metadata_value(bitstream['bitstream_id'])
         if metadata_bitstream_dict is not None:
             bitstream_json_p['metadata'] = metadata_bitstream_dict
             # bitstream['size_bytes']
@@ -106,7 +106,7 @@ def import_bitstream(metadata_class,
                 str(bitstream['bitstream_id']) + ' failed. Exception: ' +
                 str(e))
 
-    statistics_val = (len(bitstream_json_a), imported)
+    statistics_val = (len(bitstream_json_list), imported)
     statistics_dict['bitstream'] = statistics_val
     # add logos (bitstreams) to collections and communities
     add_logo_to_community(community2logo_dict, bitstream_id_dict, community_id_dict)

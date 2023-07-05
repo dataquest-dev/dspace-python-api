@@ -15,11 +15,11 @@ def import_user_registration(email2epersonId_dict,
     user_reg_url = 'clarin/import/userregistration'
     imported_user_reg = 0
     # read user_registration
-    user_reg_json_a = read_json(user_reg_json_name)
-    if not user_reg_json_a:
+    user_reg_json_list = read_json(user_reg_json_name)
+    if not user_reg_json_list:
         logging.info("User_registration JSON is empty.")
         return
-    for user_reg_json in user_reg_json_a:
+    for user_reg_json in user_reg_json_list:
         user_reg_json_p = {
             'email': user_reg_json['email'],
             'organization': user_reg_json['organization'],
@@ -40,6 +40,6 @@ def import_user_registration(email2epersonId_dict,
                           str(user_reg_json['eperson_id']) +
                           ' failed. Exception: ' + str(e))
 
-    statistics_val = (len(user_reg_json_a), imported_user_reg)
+    statistics_val = (len(user_reg_json_list), imported_user_reg)
     statistics_dict['user_registration'] = statistics_val
     logging.info("User registration was successfully imported!")

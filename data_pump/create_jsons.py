@@ -24,7 +24,8 @@ def get_data_as_json(database, host, db_user, db_password):
         name = name_t[0]
         j_name = 'data/' + name + '.json'
         with open(j_name, 'w', encoding='utf-8') as j:
-            cursor.execute("SELECT json_agg(row_to_json(t)) FROM \"{}\" t".format(name))
+            cursor.execute(
+                "SELECT json_listgg(row_to_json(t)) FROM \"{}\" t".format(name))
             # access to 0. position, because the fetchone returns tuple
             created_json = json.dumps(cursor.fetchone()[0])
             j.write(created_json)

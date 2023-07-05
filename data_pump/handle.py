@@ -8,8 +8,8 @@ class Handle:
         self.handle_dict = {}
         self.imported_handle = 0
         self.read_handle()
-        self.import_handle_with_url()
-        self.import_handle_without_object()
+        # self.import_handle_with_url()
+        # self.import_handle_without_object()
 
     def read_handle(self):
         """
@@ -18,11 +18,11 @@ class Handle:
         where value is list of jsons.
         """
         handle_json_name = 'handle.json'
-        handle_json_a = read_json(handle_json_name)
-        if not handle_json_a:
+        handle_json_list = read_json(handle_json_name)
+        if not handle_json_list:
             logging.info('Handle JSON is empty.')
             return
-        for handle in handle_json_a:
+        for handle in handle_json_list:
             key = (handle['resource_type_id'], handle['resource_id'])
             if key in self.handle_dict.keys():
                 self.handle_dict[key].append(handle)

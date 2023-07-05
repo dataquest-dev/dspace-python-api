@@ -16,11 +16,11 @@ def import_license(eperson_id_dict, statistics_dict):
     imported_label = 0
     labels_dict = {}
     # import license_label
-    label_json_a = read_json(label_json_name)
-    if not label_json_a:
+    label_json_list = read_json(label_json_name)
+    if not label_json_list:
         logging.info("License_label JSON is empty.")
         return
-    for label in label_json_a:
+    for label in label_json_list:
         label_json_p = {
             'label': label['label'],
             'title': label['title'],
@@ -49,7 +49,7 @@ def import_license(eperson_id_dict, statistics_dict):
             logging.error('POST request ' + label_url +
                           ' failed. Exception: ' + str(e))
 
-    statistics_val = (len(label_json_a), imported_label)
+    statistics_val = (len(label_json_list), imported_label)
     statistics_dict['license_label'] = statistics_val
 
     # import license definition and exteended mapping
@@ -58,22 +58,22 @@ def import_license(eperson_id_dict, statistics_dict):
     ext_map_json_name = 'license_label_extended_mapping.json'
     # read license label extended mapping
     ext_map_dict = {}
-    ext_map_json_a = read_json(ext_map_json_name)
-    if not ext_map_json_a:
+    ext_map_json_list = read_json(ext_map_json_name)
+    if not ext_map_json_list:
         logging.info("Extended_mapping JSON is empty.")
         return
-    for ext_map in ext_map_json_a:
+    for ext_map in ext_map_json_list:
         if ext_map['license_id'] in ext_map_dict.keys():
             ext_map_dict[ext_map['license_id']].append(labels_dict[ext_map['label_id']])
         else:
             ext_map_dict[ext_map['license_id']] = [labels_dict[ext_map['label_id']]]
     # import license_definition
     imported_license = 0
-    license_json_a = read_json(license_json_name)
-    if not license_json_a:
+    license_json_list = read_json(license_json_name)
+    if not license_json_list:
         logging.info("License_definitions JSON is empty.")
         return
-    for license_ in license_json_a:
+    for license_ in license_json_list:
         license_json_p = {
             'name': license_['name'],
             'definition': license_['definition'],
@@ -92,7 +92,7 @@ def import_license(eperson_id_dict, statistics_dict):
             logging.error('POST request ' + license_url +
                           ' failed. Exception: ' + str(e))
 
-    statistics_val = (len(license_json_a), imported_license)
+    statistics_val = (len(license_json_list), imported_license)
     statistics_dict['license_definition'] = statistics_val
     logging.info("License_label, Extended_mapping, License_definitions "
                  "were successfully imported!")

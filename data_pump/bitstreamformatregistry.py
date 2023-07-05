@@ -26,12 +26,12 @@ def import_bitstreamformatregistry(bitstreamformat_id_dict,
                 if bitstreamformat['description'] == 'Unknown data format':
                     unknown_format_id_val = bitstreamformat['id']
 
-        bitstreamformat_json_a = read_json(bitsteamformat_json_name)
-        if not bitstreamformat_json_a:
+        bitstreamformat_json_list = read_json(bitsteamformat_json_name)
+        if not bitstreamformat_json_list:
             logging.info("Bitstreamformatregistry JSON is empty.")
             return
 
-        for bitstreamformat in bitstreamformat_json_a:
+        for bitstreamformat in bitstreamformat_json_list:
             level = bitstreamformat['support_level']
             if level == 0:
                 level_str = "UNKNOWN"
@@ -67,7 +67,7 @@ def import_bitstreamformatregistry(bitstreamformat_id_dict,
                     logging.error('POST request ' + bitstreamformat_url + ' for id: ' +
                                   str(bitstreamformat['bitstream_format_id']) +
                                   ' failed. Exception: ' + str(e))
-        statistics_val = (len(bitstreamformat_json_a), imported)
+        statistics_val = (len(bitstreamformat_json_list), imported)
         statistics_dict['bitstreamformatregistry'] = statistics_val
     except Exception as e:
         logging.error('GET request ' + bitstreamformat_url +
