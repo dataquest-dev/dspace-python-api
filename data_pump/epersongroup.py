@@ -21,34 +21,28 @@ def import_epersongroup(metadata_class,
     if existing_data_dict is not None:
         for existing_data in existing_data_dict:
             if existing_data['name'] == 'Anonymous':
-                group_id_dict[0] = [existing_data['id']]
+                group_id_dict[existing_data['uuid']] = [existing_data['id']]
             elif existing_data['name'] == 'Administrator':
-                group_id_dict[1] = [existing_data['id']]
-            else:
-                logging.error('Unrecognized eperson group ' + existing_data['name'])
+                group_id_dict[existing_data['uuid']] = [existing_data['id']]
 
     if not group_json_list:
         logging.info("Epersongroup JSON is empty.")
         return
+    collection_str = 'COLLECTION_'
     for group in group_json_list:
         group_id = group['eperson_group_id']
         # group Administrator and Anonymous already exist
         # group is created with dspace object too
-        if group_id not in (0, 1) and group_id not in group_id_dict:
+        if group_id not in (0, 1) and collection_str not in group['name']:
+            json_p = {'name': group['name']}
             # get group metadata
             metadatavalue_group_dict = \
                 metadata_class.get_metadata_value(group['eperson_group_id'])
-            if 'dc.title' not in metadatavalue_group_dict:
-                logging.error('Metadata for group ' + str(group_id) +
-                              ' does not contain title!')
-                continue
-            name = metadatavalue_group_dict['dc.title'][0]['value']
-            del metadatavalue_group_dict['dc.title']
-            # the group_metadata contains the name of the group
-            json_p = {'name': name, 'metadata': metadatavalue_group_dict}
+            if metadatavalue_group_dict is not None:
+                json_p['metadata'] = metadatavalue_group_dict
             try:
                 response = do_api_post(group_url, {}, json_p)
-                group_id_dict[group['eperson_group_id']] = [
+                group_id_dict[group['uuid']] = [
                     convert_response_to_json(response)['id']]
                 imported += 1
             except Exception as e:
@@ -93,6 +87,12 @@ def import_group2group(group_id_dict,
         return
 
     for group2group in group2group_json_list:
+        if group2group['parent_id'] not in group_id_dict:
+            logging.error('Group id: ' + group2group['parent_id'] + ' does not exist.')
+            continue
+        if group2group['child_id'] not in group_id_dict:
+            logging.error('Group id: ' + group2group['child_id'] + ' does not exist.')
+            continue
         parents_a = group_id_dict[group2group['parent_id']]
         childs_a = group_id_dict[group2group['child_id']]
         for parent in parents_a:

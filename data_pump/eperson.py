@@ -30,9 +30,7 @@ def import_eperson(metadata_class,
             'canLogIn': eperson['can_log_in'],
             'lastActive': eperson['last_active'],
             'email': eperson['email'],
-            'password': eperson['password'],
-            'welcomeInfo': eperson['welcome_info'],
-            'canEditSubmissionMetadata': eperson['can_edit_submission_metadata']
+            'password': eperson['password']
         }
         email2epersonId_dict[eperson['email']] = eperson['eperson_id']
         if metadatavalue_eperson_dict:

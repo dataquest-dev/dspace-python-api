@@ -23,8 +23,9 @@ def import_tasklistitem(workflowitem_id_dict,
                 'epersonUUID': eperson_id_dict[tasklistitem['eperson_id']],
                 'workflowitem_id': workflowitem_id_dict[tasklistitem['workflow_id']]
             }
-            do_api_post(tasklistitem_url, params, None)
-            imported_tasklistitem += 1
+            response = do_api_post(tasklistitem_url, params, None)
+            if response.ok:
+                imported_tasklistitem += 1
         except Exception as e:
             logging.error('POST request ' + tasklistitem_url + ' failed. Exception: ' +
                           str(e))

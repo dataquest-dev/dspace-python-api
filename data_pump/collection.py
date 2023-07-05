@@ -34,10 +34,10 @@ def import_collection(metadata_class,
     # because the role DEFAULT_READ is without old group id in collection
     read_default_dict = {}
     group_json_list = read_json(group_json_name)
-    collection_str = '_DEFAULT_READ'
+    default_read_str = '_DEFAULT_READ'
     for group in group_json_list:
         name = group['name']
-        if collection_str in name:
+        if default_read_str in name:
             positions = [ind for ind, ch in enumerate(name) if ch == '_']
             read_default_dict[name[positions[0] + 1: positions[1]]] = group['uuid']
 
