@@ -1,25 +1,28 @@
 import logging
 
-from utils import read_json, convert_response_to_json, do_api_post
+from data_pump.utils import read_json, convert_response_to_json, do_api_post, \
+    save_dict_as_json
 
 
 def import_user_registration(email2epersonId_dict,
                              eperson_id_dict,
                              userRegistration_id_dict,
-                             statistics_dict):
+                             statistics_dict,
+                             save_dict):
     """
     Import data into database.
     Mapped tables: user_registration
     """
     user_reg_json_name = "user_registration.json"
+    saved_user_reg_json_name = 'user_registration_dict.json'
     user_reg_url = 'clarin/import/userregistration'
     imported_user_reg = 0
     # read user_registration
-    user_reg_json_a = read_json(user_reg_json_name)
-    if not user_reg_json_a:
+    user_reg_json_list = read_json(user_reg_json_name)
+    if not user_reg_json_list:
         logging.info("User_registration JSON is empty.")
         return
-    for user_reg_json in user_reg_json_a:
+    for user_reg_json in user_reg_json_list:
         user_reg_json_p = {
             'email': user_reg_json['email'],
             'organization': user_reg_json['organization'],
@@ -40,6 +43,9 @@ def import_user_registration(email2epersonId_dict,
                           str(user_reg_json['eperson_id']) +
                           ' failed. Exception: ' + str(e))
 
-    statistics_val = (len(user_reg_json_a), imported_user_reg)
+    # save user registration dict as json
+    if save_dict:
+        save_dict_as_json(saved_user_reg_json_name, userRegistration_id_dict)
+    statistics_val = (len(user_reg_json_list), imported_user_reg)
     statistics_dict['user_registration'] = statistics_val
     logging.info("User registration was successfully imported!")

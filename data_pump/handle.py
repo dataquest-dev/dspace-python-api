@@ -1,6 +1,6 @@
 import logging
 
-from utils import do_api_post, read_json
+from data_pump.utils import do_api_post, read_json
 
 
 class Handle:
@@ -18,11 +18,11 @@ class Handle:
         where value is list of jsons.
         """
         handle_json_name = 'handle.json'
-        handle_json_a = read_json(handle_json_name)
-        if not handle_json_a:
+        handle_json_list = read_json(handle_json_name)
+        if not handle_json_list:
             logging.info('Handle JSON is empty.')
             return
-        for handle in handle_json_a:
+        for handle in handle_json_list:
             key = (handle['resource_type_id'], handle['resource_id'])
             if key in self.handle_dict.keys():
                 self.handle_dict[key].append(handle)
@@ -47,11 +47,14 @@ class Handle:
                 'url': handle['url']
             }
             try:
-                do_api_post(handle_url, {}, handle_json_p)
-                self.imported_handle += 1
+                response = do_api_post(handle_url, {}, handle_json_p)
+                if response.ok:
+                    self.imported_handle += 1
+                else:
+                    raise Exception(response)
             except Exception as e:
-                logging.error('POST response ' + handle_url +
-                              ' failed. Exception: ' + str(e))
+                logging.error('POST response ' + handle_url + ' for handle: ' +
+                              handle['handle'] + ' failed. Exception: ' + str(e))
 
         logging.info("Handles with url were successfully imported!")
 
