@@ -14,7 +14,7 @@ from data_pump.item import import_item
 from data_pump.metadata import Metadata
 from data_pump.registrationdata import import_registrationdata
 from data_pump.tasklistitem import import_tasklistitem
-from utils import read_json
+from data_pump.utils import read_json, create_dict_from_json
 
 
 def at_the_end_of_import(handle_class_p, statistics_dict):
@@ -53,27 +53,28 @@ def insert_data_into_dicts(eperson_json_name, user_registraion_json_name,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Upload values into dictionaries')
     parser.add_argument('--insert_dict_bool',
-                        description='bool value if we load values into dict',
+                        help='bool value if we load values into dict',
                         required=False, type=bool, default=False)
     parser.add_argument('--save_dict_bool',
-                        description='bool value if we save dict values into jsons',
-                        required=False, type=bool, default=False)
+                        help='bool value if we save dict values into jsons',
+                        required=False, type=bool, default=True)
     args = parser.parse_args()
-    insert_data_into_dicts("eperson.json",
-                           "user_registration.json",
-                           "epersongroup.json",
-                           "community.json",
-                           "collection.json",
-                           "item.json",
-                           "workflowitem.json",
-                           "workspaceitem.json",
-                           "bitstreamformatregistry.json",
-                           "bundle.json",
-                           "bitstream.json",
+    insert_data_into_dicts("eperson_dict.json",
+                           "user_registration._dictjson",
+                           "epersongroup_dict.json",
+                           "community_dict.json",
+                           "collection_dict.json",
+                           "item_dict.json",
+                           "workflowitem_dict.json",
+                           "workspaceitem_dict.json",
+                           "bitstreamformatregistry_dict.json",
+                           "bundle_dict.json",
+                           "bitstream_dict.json",
                            args.insert_dict_bool)
     handle_class = Handle()
-    metadata_class = Metadata(var.statistics_dict, args.save_dict_bool)
-    
+    metadata_class = Metadata(var.statistics_dict, args.insert_dict_bool,
+                              args.save_dict_bool)
+
     logging.info("Data migration started!")
     import_community(metadata_class,
                      handle_class,

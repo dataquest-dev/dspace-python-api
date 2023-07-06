@@ -2,7 +2,8 @@ import logging
 import os
 
 from migration_const import ICON_PATH
-from utils import read_json, do_api_post, convert_response_to_json, save_dict_as_json
+from data_pump.utils import read_json, do_api_post, convert_response_to_json, \
+    save_dict_as_json
 
 
 def import_license(eperson_id_dict, statistics_dict, save_dict):

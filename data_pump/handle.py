@@ -1,6 +1,6 @@
 import logging
 
-from utils import do_api_post, read_json
+from data_pump.utils import do_api_post, read_json
 
 
 class Handle:
@@ -8,8 +8,8 @@ class Handle:
         self.handle_dict = {}
         self.imported_handle = 0
         self.read_handle()
-        # self.import_handle_with_url()
-        # self.import_handle_without_object()
+        self.import_handle_with_url()
+        self.import_handle_without_object()
 
     def read_handle(self):
         """

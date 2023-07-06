@@ -1,7 +1,8 @@
 import logging
 
 from const import API_URL
-from utils import read_json, convert_response_to_json, do_api_post, save_dict_as_json
+from data_pump.utils import read_json, convert_response_to_json, do_api_post, \
+    save_dict_as_json
 
 
 def import_eperson(metadata_class,

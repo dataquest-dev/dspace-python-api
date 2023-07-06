@@ -1,13 +1,13 @@
 import logging
 
 
-from utils import read_json, convert_response_to_json, \
+from data_pump.utils import read_json, convert_response_to_json, \
     do_api_get_one, do_api_get_all, do_api_post, save_dict_as_json, \
     insert_data_into_dicts
 
 
 class Metadata:
-    def __init__(self, statistics_dict, insert_dict):
+    def __init__(self, statistics_dict, insert_dict, save_dict):
         """
         Read metadatavalue as json and
         convert it to dictionary with tuple key: resource_type_id and resource_id.
@@ -23,8 +23,8 @@ class Metadata:
 
         # import all metadata
         self.read_metadata()
-        self.import_metadataschemaregistry(statistics_dict)
-        self.import_metadatafieldregistry(statistics_dict)
+        self.import_metadataschemaregistry(statistics_dict, save_dict)
+        self.import_metadatafieldregistry(statistics_dict, save_dict)
 
     def read_metadata(self):
         metadatavalue_json_name = 'metadatavalue.json'

@@ -1,6 +1,7 @@
 import logging
 
-from utils import read_json, convert_response_to_json, do_api_post, save_dict_as_json
+from data_pump.utils import read_json, convert_response_to_json, do_api_post, \
+    save_dict_as_json
 from support.dspace_proxy import rest_proxy
 from const import API_URL
 
@@ -128,6 +129,9 @@ def import_item(metadata_class,
         handle_item = handle_class.get_handle(2, item['uuid'])
         if handle_item is not None:
             item_json_p['handle'] = handle_item
+        if item['owning_collection'] is None:
+            logging.error("Item owning collection is null!")
+            continue
         params = {
             'owningCollection': collection_id_dict[item['owning_collection']],
             'epersonUUID': eperson_id_dict[item['submitter_id']]

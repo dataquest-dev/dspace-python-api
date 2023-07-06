@@ -1,6 +1,6 @@
 import logging
 
-from utils import read_json, do_api_post
+from data_pump.utils import read_json, do_api_post
 
 
 def import_registrationdata(statistics_dict):
