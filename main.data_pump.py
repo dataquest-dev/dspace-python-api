@@ -7,23 +7,21 @@ from data_pump.bitstreamformatregistry import import_bitstreamformatregistry
 from data_pump.bundle import import_bundle
 from data_pump.collection import import_collection
 from data_pump.community import import_community
-from data_pump.user_metadata import import_user_metadata
 from data_pump.eperson import import_eperson, import_group2eperson
 from data_pump.epersongroup import import_epersongroup, import_group2group
 from data_pump.handle import Handle
 from data_pump.item import import_item
-from data_pump.license import import_license
 from data_pump.metadata import Metadata
 from data_pump.registrationdata import import_registrationdata
 from data_pump.tasklistitem import import_tasklistitem
-from data_pump.user_registration import import_user_registration
-from data_pump.utils import read_json, create_dict_from_json
+from utils import read_json
 
 
 def at_the_end_of_import(handle_class_p, statistics_dict):
     # write statistic about handles
-    handle_json_a = read_json("handle.json")
-    statistics_dict['handle'] = (len(handle_json_a),
+    handle_json_list = read_json("handle.json")
+    statistics_dict['handle'] = (len(handle_json_list),
+
                                  handle_class_p.get_imported_handle())
     # write statistic into log
     logging.info("Statistics:")
@@ -75,7 +73,7 @@ if __name__ == "__main__":
                            args.insert_dict_bool)
     handle_class = Handle()
     metadata_class = Metadata(var.statistics_dict, args.save_dict_bool)
-
+    
     logging.info("Data migration started!")
     import_community(metadata_class,
                      handle_class,
@@ -90,6 +88,7 @@ if __name__ == "__main__":
                       var.community_id_dict,
                       var.collection_id_dict,
                       var.collection2logo_dict,
+                      var.temp_item2group_dict,
                       var.statistics_dict,
                       args.save_dict_bool)
     import_registrationdata(var.statistics_dict)
@@ -103,21 +102,16 @@ if __name__ == "__main__":
                    var.email2epersonId_dict,
                    var.statistics_dict,
                    args.save_dict_bool)
-    import_user_registration(var.email2epersonId_dict,
-                             var.eperson_id_dict,
-                             var.user_registration_id_dict,
-                             var.statistics_dict,
-                             args.save_dict_bool)
     import_group2eperson(var.eperson_id_dict,
                          var.group_id_dict,
                          var.statistics_dict)
-    import_license(var.eperson_id_dict, var.statistics_dict, args.save_dict_bool)
     import_item(metadata_class,
                 handle_class,
                 var.workflowitem_id_dict,
                 var.item_id_dict,
                 var.collection_id_dict,
                 var.eperson_id_dict,
+                var.temp_item2group_dict,
                 var.statistics_dict,
                 args.save_dict_bool)
     import_tasklistitem(var.workflowitem_id_dict,
@@ -147,8 +141,5 @@ if __name__ == "__main__":
                      var.unknown_format_id_val,
                      var.statistics_dict,
                      args.save_dict_bool)
-    import_user_metadata(var.bitstream_id_dict,
-                         var.user_registration_id_dict,
-                         var.statistics_dict)
     at_the_end_of_import(handle_class, var.statistics_dict)
     logging.info("Data migration is completed!")

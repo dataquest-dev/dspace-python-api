@@ -11,6 +11,7 @@ def import_item(metadata_class,
                 item_id_dict,
                 collection_id_dict,
                 eperson_id_dict,
+                temp_item2group_dict,
                 statistics_dict,
                 save_dict):
     """
@@ -31,19 +32,19 @@ def import_item(metadata_class,
     imported_item = 0
     workspaceitem_id_dict = {}
     # create dict from items by item id
-    item_json_a = read_json(item_json_name)
+    item_json_list = read_json(item_json_name)
     items_dict = {}
-    if not item_json_a:
+    if not item_json_list:
         logging.info("Item JSON is empty.")
         return
-    for item in item_json_a:
-        items_dict[item['item_id']] = item
-    statistics_dict['item'] = (len(item_json_a), 0)
+    for item in item_json_list:
+        items_dict[item['uuid']] = item
+    statistics_dict['item'] = (len(item_json_list), 0)
 
     # create item and workspaceitem
-    workspaceitem_json_a = read_json(workspaceitem_json_name)
-    if workspaceitem_json_a is not None:
-        for workspaceitem in workspaceitem_json_a:
+    workspaceitem_json_list = read_json(workspaceitem_json_name)
+    if workspaceitem_json_list is not None:
+        for workspaceitem in workspaceitem_json_list:
             item = items_dict[workspaceitem['item_id']]
             import_workspaceitem(item, workspaceitem['collection_id'],
                                  workspaceitem['multiple_titles'],
@@ -56,11 +57,12 @@ def import_item(metadata_class,
                                  workspaceitem_id_dict,
                                  item_id_dict,
                                  collection_id_dict,
+                                 temp_item2group_dict,
                                  eperson_id_dict)
             imported_workspaceitem += 1
             del items_dict[workspaceitem['item_id']]
 
-        statistics_dict['workspaceitem'] = (len(workspaceitem_json_a),
+        statistics_dict['workspaceitem'] = (len(workspaceitem_json_list),
                                             imported_workspaceitem)
         imported_item += imported_workspaceitem
         # save workspaceitem dict as json
@@ -72,9 +74,9 @@ def import_item(metadata_class,
     # create workflowitem
     # workflowitem is created from workspaceitem
     # -1, because the workflowitem doesn't contain this attribute
-    workflowitem_json_a = read_json(workflowitem_json_name)
-    if workflowitem_json_a is not None:
-        for workflowitem in workflowitem_json_a:
+    workflowitem_json_list = read_json(workflowitem_json_name)
+    if workflowitem_json_list is not None:
+        for workflowitem in workflowitem_json_list:
             item = items_dict[workflowitem['item_id']]
             import_workspaceitem(item, workflowitem['collection_id'],
                                  workflowitem['multiple_titles'],
@@ -87,6 +89,7 @@ def import_item(metadata_class,
                                  workspaceitem_id_dict,
                                  item_id_dict,
                                  collection_id_dict,
+                                 temp_item2group_dict,
                                  eperson_id_dict)
             # create workflowitem from created workspaceitem
             params = {'id': str(workspaceitem_id_dict[workflowitem['item_id']])}
@@ -104,7 +107,7 @@ def import_item(metadata_class,
         # save workflow dict as json
         if save_dict:
             save_dict_as_json(saved_workflow_json_name, workflowitem_id_dict)
-        statistics_val = (len(workflowitem_json_a), imported_workflowitem)
+        statistics_val = (len(workflowitem_json_list), imported_workflowitem)
         statistics_dict['workflowitem'] = statistics_val
         imported_item += imported_workflowitem
         logging.info("Cwf_workflowitem was successfully imported!")
@@ -119,10 +122,10 @@ def import_item(metadata_class,
             'lastModified': item['last_modified'],
             'withdrawn': item['withdrawn']
         }
-        metadatvalue_item_dict = metadata_class.get_metadata_value(2, item['item_id'])
+        metadatvalue_item_dict = metadata_class.get_metadata_value(item['uuid'])
         if metadatvalue_item_dict:
             item_json_p['metadata'] = metadatvalue_item_dict
-        handle_item = handle_class.get_handle(2, item['item_id'])
+        handle_item = handle_class.get_handle(2, item['uuid'])
         if handle_item is not None:
             item_json_p['handle'] = handle_item
         params = {
@@ -132,11 +135,11 @@ def import_item(metadata_class,
         try:
             response = do_api_post(item_url, params, item_json_p)
             response_json = convert_response_to_json(response)
-            item_id_dict[item['item_id']] = response_json['id']
+            item_id_dict[item['uuid']] = response_json['id']
             imported_item += 1
         except Exception as e:
             logging.error('POST request ' + item_url + ' for id: ' +
-                          str(item['item_id']) + ' failed. Exception: ' + str(e))
+                          str(item['uuid']) + ' failed. Exception: ' + str(e))
 
     # save item dict as json
     if save_dict:
@@ -158,6 +161,7 @@ def import_workspaceitem(item,
                          workspaceitem_id_dict,
                          item_id_dict,
                          collection_id_dict,
+                         temp_item2group_dict,
                          eperson_id_dict):
     """
     Auxiliary method for import item.
@@ -171,10 +175,10 @@ def import_workspaceitem(item,
         'lastModified': item['last_modified'],
         'withdrawn': item['withdrawn']
     }
-    metadatavalue_item_dict = metadata_class.get_metadata_value(2, item['item_id'])
+    metadatavalue_item_dict = metadata_class.get_metadata_value(item['uuid'])
     if metadatavalue_item_dict is not None:
         workspaceitem_json_p['metadata'] = metadatavalue_item_dict
-    handle_workspaceitem = handle_class.get_handle(2, item['item_id'])
+    handle_workspaceitem = handle_class.get_handle(2, item['uuid'])
     if handle_workspaceitem is not None:
         workspaceitem_json_p['handle'] = handle_workspaceitem
     # the params are workspaceitem attributes
@@ -189,15 +193,20 @@ def import_workspaceitem(item,
     try:
         response = do_api_post(workspaceitem_url, params, workspaceitem_json_p)
         workspaceitem_id = convert_response_to_json(response)['id']
-        workspaceitem_id_dict[item['item_id']] = workspaceitem_id
+        workspaceitem_id_dict[item['uuid']] = workspaceitem_id
         item_url = API_URL + 'clarin/import/' + str(workspaceitem_id) + "/item"
         try:
             response = rest_proxy.d.api_get(item_url, None, None)
-            item_id_dict[item['item_id']] = convert_response_to_json(response)['id']
+            item_id_dict[item['uuid']] = convert_response_to_json(response)['id']
+            # # add item as template item in group
+            # if item['item_id'] in temp_item2group_dict.keys():
+            #     groups_a = temp_item2group_dict[item['item_id']]
+            #     for group in groups_a:
+            #
         except Exception as e:
             logging.error('POST request ' + item_url +
                           ' failed. Exception: ' + str(e))
     except Exception as e:
         logging.error('POST request ' + workspaceitem_url + ' for id: ' +
-                      str(item['item_id']) +
+                      str(item['uuid']) +
                       ' failed. Exception: ' + str(e))

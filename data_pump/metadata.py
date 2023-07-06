@@ -30,26 +30,27 @@ class Metadata:
         metadatavalue_json_name = 'metadatavalue.json'
         metadatafield_json_name = 'metadatafieldregistry.json'
 
-        metadatavalue_json_a = read_json(metadatavalue_json_name)
-        if not metadatavalue_json_a:
+        metadatavalue_json_list = read_json(metadatavalue_json_name)
+        if not metadatavalue_json_list:
             logging.info('Metadatavalue JSON is empty.')
             return
 
-        metadatafield_json_a = read_json(metadatafield_json_name)
+        metadatafield_json_list = read_json(metadatafield_json_name)
         sponsor_field_id = -1
-        if not metadatafield_json_a:
+        if not metadatafield_json_list:
             logging.info('Metadatafield JSON is empty.')
             return
 
         # Find out which field is `local.sponsor`, check only `sponsor` string
-        for metadatafield in metadatafield_json_a:
-            element = metadatafield['element']
-            if element != 'sponsor':
-                continue
-            sponsor_field_id = metadatafield['metadata_field_id']
 
-        for metadatavalue in metadatavalue_json_a:
-            key = (metadatavalue['resource_type_id'], metadatavalue['resource_id'])
+        for metadatafield in metadatafield_json_list:
+            element = metadatafield['element']
+            if element == 'sponsor':
+                sponsor_field_id = metadatafield['metadata_field_id']
+                break
+
+        for metadatavalue in metadatavalue_json_list:
+            key = metadatavalue['dspace_object_id']
             # replace separator @@ by ;
             metadatavalue['text_value'] = metadatavalue['text_value'].replace("@@", ";")
             # replace `local.sponsor` data sequence
@@ -87,7 +88,7 @@ class Metadata:
         return separator.join(
             [project_type, project_code, org, project_name, eu_identifier])
 
-    def import_metadataschemaregistry(self, statistics_dict, save_dict=True):
+    def import_metadataschemaregistry(self, statistics_dict, save_dict):
         """
         Import data into database.
         Mapped tables: metadataschemaregistry
@@ -100,11 +101,11 @@ class Metadata:
         existing_data_dict = Metadata.get_imported_metadataschemaregistry(
             metadataschema_url)
 
-        metadataschema_json_a = read_json(metadataschema_json_name)
-        if not metadataschema_json_a:
+        metadataschema_json_list = read_json(metadataschema_json_name)
+        if not metadataschema_json_list:
             logging.info("Metadataschemaregistry JSON is empty.")
             return
-        for metadataschema in metadataschema_json_a:
+        for metadataschema in metadataschema_json_list:
             metadataschema_json_p = {
                 'namespace': metadataschema['namespace'],
                 'prefix': metadataschema['short_id']
@@ -143,7 +144,7 @@ class Metadata:
         if save_dict:
             save_dict_as_json(saved_metadataschema_json_name,
                               self.metadataschema_id_dict)
-        statistics_val = (len(metadataschema_json_a), imported)
+        statistics_val = (len(metadataschema_json_list), imported)
         statistics_dict['metadataschemaregistry'] = statistics_val
         logging.info("MetadataSchemaRegistry was successfully imported!")
 
@@ -180,11 +181,11 @@ class Metadata:
             logging.error('GET request ' + metadatafield_url +
                           ' failed. Exception: ' + str(e))
 
-        metadatafield_json_a = read_json(metadatafield_json_name)
-        if not metadatafield_json_a:
+        metadatafield_json_list = read_json(metadatafield_json_name)
+        if not metadatafield_json_list:
             logging.info("Metadatafieldregistry JSON is empty.")
             return
-        for metadatafield in metadatafield_json_a:
+        for metadatafield in metadatafield_json_list:
             metadatafield_json_p = {
                 'element': metadatafield['element'],
                 'qualifier': metadatafield['qualifier'],
@@ -225,11 +226,11 @@ class Metadata:
         # save metadatafield dict as json
         if save_dict:
             save_dict_as_json(saved_metadatafield_json_name, self.metadatafield_id_dict)
-        statistics_val = (len(metadatafield_json_a), imported)
+        statistics_val = (len(metadatafield_json_list), imported)
         statistics_dict['metadatafieldregistry'] = statistics_val
         logging.info("MetadataFieldRegistry was successfully imported!")
 
-    def get_metadata_value(self, old_resource_type_id, old_resource_id):
+    def get_metadata_value(self, object_id):
         """
         Get metadata value for dspace object.
         """
@@ -237,13 +238,11 @@ class Metadata:
         metadataschema_url = 'core/metadataschemas'
         result_dict = {}
         # get all metadatavalue for object
-        if (old_resource_type_id, old_resource_id) not in self.metadatavalue_dict:
-            logging.info('Metadatavalue for resource_type_id: ' +
-                         str(old_resource_type_id) + ' and resource_id: ' +
-                         str(old_resource_id) + 'does not exist.')
+        if object_id not in self.metadatavalue_dict:
+            logging.info('Metadatavalue for dspace_object_id: ' +
+                         str(object_id) + 'does not exist.')
             return None
-        metadatavalue_obj = self.metadatavalue_dict[(
-            old_resource_type_id, old_resource_id)]
+        metadatavalue_obj = self.metadatavalue_dict[object_id]
         # create list of object metadata
         for metadatavalue in metadatavalue_obj:
             if metadatavalue['metadata_field_id'] not in self.metadatafield_id_dict:

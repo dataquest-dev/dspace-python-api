@@ -14,4 +14,5 @@ bitstream2bundle_dict = {}
 bundle_id_dict = {}
 bitstream_id_dict = {}
 statistics_dict = {}
+temp_item2group_dict = {}
 unknown_format_id_val = None
