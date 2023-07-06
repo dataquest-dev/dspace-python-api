@@ -37,7 +37,7 @@ def import_bundle(metadata_class,
         return
     for bundle in bundle_json_list:
         if bundle['primary_bitstream_id']:
-            primary_bitstream_dict[bundle['primary_bitstream_id']] = bundle['bundle_id']
+            primary_bitstream_dict[bundle['primary_bitstream_id']] = bundle['uuid']
 
     # import bundle without primary bitstream id
     if not item2bundle_dict:

@@ -34,7 +34,7 @@ def import_item(metadata_class,
         logging.info("Item JSON is empty.")
         return
     for item in item_json_list:
-        items_dict[item['item_id']] = item
+        items_dict[item['uuid']] = item
     statistics_dict['item'] = (len(item_json_list), 0)
 
     # create item and workspaceitem
@@ -112,10 +112,10 @@ def import_item(metadata_class,
             'lastModified': item['last_modified'],
             'withdrawn': item['withdrawn']
         }
-        metadatvalue_item_dict = metadata_class.get_metadata_value(item['item_id'])
+        metadatvalue_item_dict = metadata_class.get_metadata_value(item['uuid'])
         if metadatvalue_item_dict:
             item_json_p['metadata'] = metadatvalue_item_dict
-        handle_item = handle_class.get_handle(2, item['item_id'])
+        handle_item = handle_class.get_handle(2, item['uuid'])
         if handle_item is not None:
             item_json_p['handle'] = handle_item
         params = {
@@ -125,11 +125,11 @@ def import_item(metadata_class,
         try:
             response = do_api_post(item_url, params, item_json_p)
             response_json = convert_response_to_json(response)
-            item_id_dict[item['item_id']] = response_json['id']
+            item_id_dict[item['uuid']] = response_json['id']
             imported_item += 1
         except Exception as e:
             logging.error('POST request ' + item_url + ' for id: ' +
-                          str(item['item_id']) + ' failed. Exception: ' + str(e))
+                          str(item['uuid']) + ' failed. Exception: ' + str(e))
 
     statistics_val = (statistics_dict['item'][0], imported_item)
     statistics_dict['item'] = statistics_val
@@ -162,10 +162,10 @@ def import_workspaceitem(item,
         'lastModified': item['last_modified'],
         'withdrawn': item['withdrawn']
     }
-    metadatavalue_item_dict = metadata_class.get_metadata_value(item['item_id'])
+    metadatavalue_item_dict = metadata_class.get_metadata_value(item['uuid'])
     if metadatavalue_item_dict is not None:
         workspaceitem_json_p['metadata'] = metadatavalue_item_dict
-    handle_workspaceitem = handle_class.get_handle(2, item['item_id'])
+    handle_workspaceitem = handle_class.get_handle(2, item['uuid'])
     if handle_workspaceitem is not None:
         workspaceitem_json_p['handle'] = handle_workspaceitem
     # the params are workspaceitem attributes
@@ -180,11 +180,11 @@ def import_workspaceitem(item,
     try:
         response = do_api_post(workspaceitem_url, params, workspaceitem_json_p)
         workspaceitem_id = convert_response_to_json(response)['id']
-        workspaceitem_id_dict[item['item_id']] = workspaceitem_id
+        workspaceitem_id_dict[item['uuid']] = workspaceitem_id
         item_url = API_URL + 'clarin/import/' + str(workspaceitem_id) + "/item"
         try:
             response = rest_proxy.d.api_get(item_url, None, None)
-            item_id_dict[item['item_id']] = convert_response_to_json(response)['id']
+            item_id_dict[item['uuid']] = convert_response_to_json(response)['id']
             # # add item as template item in group
             # if item['item_id'] in temp_item2group_dict.keys():
             #     groups_a = temp_item2group_dict[item['item_id']]
@@ -195,5 +195,5 @@ def import_workspaceitem(item,
                           ' failed. Exception: ' + str(e))
     except Exception as e:
         logging.error('POST request ' + workspaceitem_url + ' for id: ' +
-                      str(item['item_id']) +
+                      str(item['uuid']) +
                       ' failed. Exception: ' + str(e))

@@ -65,7 +65,7 @@ def import_collection(metadata_class,
         except Exception as e:
             logging.error(
                 'POST request ' + collection_url + ' for id: ' +
-                str(collection['collection_id']) + 'failed. Exception: ' + str(e))
+                str(collection['uuid']) + 'failed. Exception: ' + str(e))
             continue
 
         # add to collection2logo, if collection has logo

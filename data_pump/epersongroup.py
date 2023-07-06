@@ -30,14 +30,14 @@ def import_epersongroup(metadata_class,
         return
     collection_str = 'COLLECTION_'
     for group in group_json_list:
-        group_id = group['eperson_group_id']
+        group_id = group['uuid']
         # group Administrator and Anonymous already exist
         # group is created with dspace object too
         if group_id not in (0, 1) and collection_str not in group['name']:
             json_p = {'name': group['name']}
             # get group metadata
             metadatavalue_group_dict = \
-                metadata_class.get_metadata_value(group['eperson_group_id'])
+                metadata_class.get_metadata_value(group['uuid'])
             if metadatavalue_group_dict is not None:
                 json_p['metadata'] = metadatavalue_group_dict
             try:
@@ -47,7 +47,7 @@ def import_epersongroup(metadata_class,
                 imported += 1
             except Exception as e:
                 logging.error('POST request ' + group_url + ' for id: ' +
-                              str(group['eperson_group_id']) +
+                              str(group['uuid']) +
                               ' failed. Exception: ' + str(e))
     if 'epersongroup' in statistics_dict:
         statistics_val = (len(group_json_list), statistics_dict['epersongroup'][1] +

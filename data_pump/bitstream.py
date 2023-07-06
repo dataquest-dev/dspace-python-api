@@ -57,7 +57,7 @@ def import_bitstream(metadata_class,
         counter += 1
         bitstream_json_p = {}
         metadata_bitstream_dict = \
-            metadata_class.get_metadata_value(bitstream['bitstream_id'])
+            metadata_class.get_metadata_value(bitstream['uuid'])
         if metadata_bitstream_dict is not None:
             bitstream_json_p['metadata'] = metadata_bitstream_dict
             # bitstream['size_bytes']
@@ -69,7 +69,7 @@ def import_bitstream(metadata_class,
         }
         if not bitstream['bitstream_format_id']:
             logging.info(
-                f'Bitstream {bitstream["bitstream_id"]} '
+                f'Bitstream {bitstream["uuid"]} '
                 f'does not have a bitstream_format_id. '
                 f'Using {unknown_format_id_val} instead.')
             bitstream['bitstream_format_id'] = unknown_format_id_val
@@ -84,26 +84,26 @@ def import_bitstream(metadata_class,
                   'primaryBundle_id': None}
 
         # if bitstream has bundle, set bundle_id from None to id
-        if bitstream['bitstream_id'] in bitstream2bundle_dict:
+        if bitstream['uuid'] in bitstream2bundle_dict:
             params['bundle_id'] = \
-                bundle_id_dict[bitstream2bundle_dict[bitstream['bitstream_id']]]
+                bundle_id_dict[bitstream2bundle_dict[bitstream['uuid']]]
 
         # if bitstream is primary bitstream of some bundle,
         # set primaryBundle_id from None to id
-        if bitstream['bitstream_id'] in primary_bitstream_dict:
+        if bitstream['uuid'] in primary_bitstream_dict:
             params['primaryBundle_id'] = \
-                bundle_id_dict[primary_bitstream_dict[bitstream['bitstream_id']]]
+                bundle_id_dict[primary_bitstream_dict[bitstream['uuid']]]
         try:
             logging.info('Going to process Bitstream with internal_id: ' +
                          str(bitstream['internal_id']))
             response = do_api_post(bitstream_url, params, bitstream_json_p)
-            bitstream_id_dict[bitstream['bitstream_id']] = \
+            bitstream_id_dict[bitstream['uuid']] = \
                 convert_response_to_json(response)['id']
             imported += 1
         except Exception as e:
             logging.error(
                 'POST request ' + bitstream_url + ' for id: ' +
-                str(bitstream['bitstream_id']) + ' failed. Exception: ' +
+                str(bitstream['uuid']) + ' failed. Exception: ' +
                 str(e))
 
     statistics_val = (len(bitstream_json_list), imported)

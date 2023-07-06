@@ -22,7 +22,7 @@ def import_eperson(metadata_class,
         return
     for eperson in eperson_json_list:
         metadatavalue_eperson_dict = \
-            metadata_class.get_metadata_value(eperson['eperson_id'])
+            metadata_class.get_metadata_value(eperson['uuid'])
         eperson_json_p = {
             'selfRegistered': eperson['self_registered'],
             'requireCertificate': eperson['require_certificate'],
@@ -32,7 +32,7 @@ def import_eperson(metadata_class,
             'email': eperson['email'],
             'password': eperson['password']
         }
-        email2epersonId_dict[eperson['email']] = eperson['eperson_id']
+        email2epersonId_dict[eperson['email']] = eperson['uuid']
         if metadatavalue_eperson_dict:
             eperson_json_p['metadata'] = metadatavalue_eperson_dict
         params = {
@@ -41,12 +41,12 @@ def import_eperson(metadata_class,
         }
         try:
             response = do_api_post(eperson_url, params, eperson_json_p)
-            eperson_id_dict[eperson['eperson_id']] = convert_response_to_json(
+            eperson_id_dict[eperson['uuid']] = convert_response_to_json(
                 response)['id']
             imported_eperson += 1
         except Exception as e:
             logging.error('POST request ' + eperson_url + ' for id: ' +
-                          str(eperson['eperson_id']) +
+                          str(eperson['uuid']) +
                           ' failed. Exception: ' + str(e))
 
     statistics_val = (len(eperson_json_list), imported_eperson)
