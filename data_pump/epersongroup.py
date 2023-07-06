@@ -1,17 +1,20 @@
 import logging
 
 from const import API_URL
-from utils import read_json, convert_response_to_json, do_api_get_all, do_api_post
+from utils import read_json, convert_response_to_json, do_api_get_all, do_api_post, \
+    save_dict_as_json
 
 
 def import_epersongroup(metadata_class,
                         group_id_dict,
-                        statistics_dict):
+                        statistics_dict,
+                        save_dict):
     """
     Import data into database.
     Mapped tables: epersongroup
     """
     group_json_name = 'epersongroup.json'
+    saved_group_json_name = 'epersongroup_dict.json'
     group_url = 'eperson/groups'
     imported = 0
     group_json_list = read_json(group_json_name)
@@ -49,6 +52,11 @@ def import_epersongroup(metadata_class,
                 logging.error('POST request ' + group_url + ' for id: ' +
                               str(group['uuid']) +
                               ' failed. Exception: ' + str(e))
+
+    # save group dict as json
+    if save_dict:
+        save_dict_as_json(saved_group_json_name, group_id_dict)
+
     if 'epersongroup' in statistics_dict:
         statistics_val = (len(group_json_list), statistics_dict['epersongroup'][1] +
                           imported)
@@ -100,8 +108,11 @@ def import_group2group(group_id_dict,
                 parent_url = group2group_url + '/' + parent + '/subgroups'
                 try:
                     child_url = API_URL + 'eperson/groups/' + child
-                    do_api_post(parent_url, {}, child_url)
-                    imported += 1
+                    response = do_api_post(parent_url, {}, child_url)
+                    if response.ok:
+                        imported += 1
+                    else:
+                        raise Exception(response)
                 except Exception as e:
                     logging.error('POST request ' + parent_url + ' for id: ' +
                                   str(parent) + ' failed. Exception: ' + str(e))

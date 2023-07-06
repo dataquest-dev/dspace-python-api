@@ -2,11 +2,12 @@ import logging
 
 
 from utils import read_json, convert_response_to_json, \
-    do_api_get_one, do_api_get_all, do_api_post
+    do_api_get_one, do_api_get_all, do_api_post, save_dict_as_json, \
+    insert_data_into_dicts
 
 
 class Metadata:
-    def __init__(self, statistics_dict):
+    def __init__(self, statistics_dict, insert_dict):
         """
         Read metadatavalue as json and
         convert it to dictionary with tuple key: resource_type_id and resource_id.
@@ -14,6 +15,12 @@ class Metadata:
         self.metadatavalue_dict = {}
         self.metadataschema_id_dict = {}
         self.metadatafield_id_dict = {}
+        if insert_dict:
+            self.metadataschema_id_dict = \
+                insert_data_into_dicts("metadataschemaregistry.json")
+            self.metadatafield_id_dict = \
+                insert_data_into_dicts("metadatafieldregistry.json")
+
         # import all metadata
         self.read_metadata()
         self.import_metadataschemaregistry(statistics_dict)
@@ -35,6 +42,7 @@ class Metadata:
             return
 
         # Find out which field is `local.sponsor`, check only `sponsor` string
+
         for metadatafield in metadatafield_json_list:
             element = metadatafield['element']
             if element == 'sponsor':
@@ -80,12 +88,13 @@ class Metadata:
         return separator.join(
             [project_type, project_code, org, project_name, eu_identifier])
 
-    def import_metadataschemaregistry(self, statistics_dict):
+    def import_metadataschemaregistry(self, statistics_dict, save_dict):
         """
         Import data into database.
         Mapped tables: metadataschemaregistry
         """
         metadataschema_json_name = 'metadataschemaregistry.json'
+        saved_metadataschema_json_name = 'metadataschema_dict.json'
         metadataschema_url = 'core/metadataschemas'
         imported = 0
         # get all existing data from database table
@@ -131,6 +140,10 @@ class Metadata:
                                   str(metadataschema['metadata_schema_id']) +
                                   ' failed. Exception: ' + str(e))
 
+        # save metadataschema dict as json
+        if save_dict:
+            save_dict_as_json(saved_metadataschema_json_name,
+                              self.metadataschema_id_dict)
         statistics_val = (len(metadataschema_json_list), imported)
         statistics_dict['metadataschemaregistry'] = statistics_val
         logging.info("MetadataSchemaRegistry was successfully imported!")
@@ -150,12 +163,13 @@ class Metadata:
                           + str(e))
         return existing_data_dict
 
-    def import_metadatafieldregistry(self, statistics_dict):
+    def import_metadatafieldregistry(self, statistics_dict, save_dict=True):
         """
         Import data into database.
         Mapped tables: metadatafieldregistry
         """
         metadatafield_json_name = 'metadatafieldregistry.json'
+        saved_metadatafield_json_name = 'metadatafield_dict.json'
         metadatafield_url = 'core/metadatafields'
         imported = 0
         existing_data_dict = None
@@ -209,6 +223,9 @@ class Metadata:
                                   str(metadatafield['metadata_field_id']) +
                                   ' failed. Exception: ' + str(e))
 
+        # save metadatafield dict as json
+        if save_dict:
+            save_dict_as_json(saved_metadatafield_json_name, self.metadatafield_id_dict)
         statistics_val = (len(metadatafield_json_list), imported)
         statistics_dict['metadatafieldregistry'] = statistics_val
         logging.info("MetadataFieldRegistry was successfully imported!")

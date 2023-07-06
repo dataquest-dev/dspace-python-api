@@ -1,6 +1,6 @@
 import logging
 
-from utils import read_json, convert_response_to_json, do_api_post
+from utils import read_json, convert_response_to_json, do_api_post, save_dict_as_json
 
 
 def import_collection(metadata_class,
@@ -10,12 +10,14 @@ def import_collection(metadata_class,
                       collection_id_dict,
                       collection2logo_dict,
                       temp_item2group_dict,
-                      statistics_dict):
+                      statistics_dict,
+                      save_dict):
     """
     Import data into database.
     Mapped tables: collection, community2collection, metadatavalue, handle
     """
     collection_json_name = 'collection.json'
+    saved_collection_json_name = 'collection_dict.json'
     com2col_json_name = 'community2collection.json'
     group_json_name = 'epersongroup.json'
     collection_url = 'core/collections'
@@ -92,6 +94,7 @@ def import_collection(metadata_class,
             except Exception as e:
                 logging.error('POST request ' + workflow_groups_url +
                               ' failed. Exception: ' + str(e))
+
         if collection['workflow_step_2'] is not None:
             workflow_groups_url = collection_url + '/' + \
                 coll_id + '/workflowGroups/editor'
@@ -103,7 +106,6 @@ def import_collection(metadata_class,
             except Exception as e:
                 logging.error('POST request ' + workflow_groups_url +
                               ' failed. Exception: ' + str(e))
-
         if collection['workflow_step_3'] is not None:
             workflow_groups_url = collection_url + '/' + \
                 coll_id + '/workflowGroups/finaleditor'
@@ -115,6 +117,7 @@ def import_collection(metadata_class,
             except Exception as e:
                 logging.error('POST request ' + workflow_groups_url +
                               ' failed. Exception: ' + str(e))
+
         if collection['submitter'] is not None:
             submitters_group_url = collection_url + '/' + \
                 coll_id + '/submittersGroup'
@@ -153,6 +156,9 @@ def import_collection(metadata_class,
             create_default_read(item_read_group_url, collection['uuid'],
                                 group_id_dict, read_default_dict, imported_group)
 
+    # save collection dict as json
+    if save_dict:
+        save_dict_as_json(saved_collection_json_name, collection_id_dict)
     statistics_val = (len(collection_json_list), imported_coll)
     statistics_dict['collection'] = statistics_val
     statistics_val = (0, statistics_dict['epersongroup'][1] + imported_group)

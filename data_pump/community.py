@@ -1,6 +1,6 @@
 import logging
 
-from utils import read_json, convert_response_to_json, do_api_post
+from utils import read_json, convert_response_to_json, do_api_post, save_dict_as_json
 
 
 def import_community(metadata_class,
@@ -8,12 +8,14 @@ def import_community(metadata_class,
                      group_id_dict,
                      community_id_dict,
                      community2logo_dict,
-                     statistics_dict):
+                     statistics_dict,
+                     save_dict):
     """
     Import data into database.
     Mapped tables: community, community2community, metadatavalue, handle
     """
     community_json_name = 'community.json'
+    saved_community_json_name = 'community_dict.json'
     comm2comm_json_name = 'community2community.json'
     community_url = 'core/communities'
     imported_comm = 0
@@ -94,6 +96,10 @@ def import_community(metadata_class,
             counter += 1
         if counter == len(community_json_list):
             counter = 0
+
+    # save community dict as json
+    if save_dict:
+        save_dict_as_json(saved_community_json_name, community_id_dict)
 
     if 'community' in statistics_dict:
         statistics_val = (statistics_dict['community'][0], imported_comm)

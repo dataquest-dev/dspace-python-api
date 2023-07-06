@@ -1,18 +1,20 @@
 import logging
 
 from const import API_URL
-from utils import read_json, convert_response_to_json, do_api_post
+from utils import read_json, convert_response_to_json, do_api_post, save_dict_as_json
 
 
 def import_eperson(metadata_class,
                    eperson_id_dict,
                    email2epersonId_dict,
-                   statistics_dict):
+                   statistics_dict,
+                   save_dict):
     """
     Import data into database.
     Mapped tables: eperson, metadatavalue
     """
     eperson_json_name = 'eperson.json'
+    saved_eperson_json_name = 'eperson_dict.json'
     eperson_url = 'clarin/import/eperson'
     imported_eperson = 0
     eperson_json_list = read_json(eperson_json_name)
@@ -49,6 +51,9 @@ def import_eperson(metadata_class,
                           str(eperson['uuid']) +
                           ' failed. Exception: ' + str(e))
 
+    # save eperson dict as json
+    if save_dict:
+        save_dict_as_json(saved_eperson_json_name, eperson_id_dict)
     statistics_val = (len(eperson_json_list), imported_eperson)
     statistics_dict['eperson'] = statistics_val
     logging.info("Eperson was successfully imported!")
@@ -75,8 +80,11 @@ def import_group2eperson(eperson_id_dict,
                 '/epersons'
             eperson_url = API_URL + 'eperson/groups/' + eperson_id_dict[
                 group2eperson['eperson_id']]
-            do_api_post(group_url, {}, eperson_url)
-            imported_group2eper += 1
+            response = do_api_post(group_url, {}, eperson_url)
+            if response.ok:
+                imported_group2eper += 1
+            else:
+                raise Exception(response)
         except Exception as e:
             logging.error('POST request ' +
                           group_url + ' failed. Exception: ' + str(e))

@@ -18,8 +18,11 @@ def import_registrationdata(statistics_dict):
     for registrationdata in registrationdata_json_list:
         registrationdata_json_p = {'email': registrationdata['email']}
         try:
-            do_api_post(registrationdata_url, {}, registrationdata_json_p)
-            imported_registrationdata += 1
+            response = do_api_post(registrationdata_url, {}, registrationdata_json_p)
+            if response.ok:
+                imported_registrationdata += 1
+            else:
+                raise Exception(response)
         except Exception as e:
             logging.error('POST request' + registrationdata_url + ' for email: ' +
                           registrationdata['email'] + ' failed. Exception: ' + str(e))

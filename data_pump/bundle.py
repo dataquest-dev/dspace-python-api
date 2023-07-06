@@ -1,19 +1,21 @@
 import logging
 
-from utils import read_json, convert_response_to_json, do_api_post
+from utils import read_json, convert_response_to_json, do_api_post, save_dict_as_json
 
 
 def import_bundle(metadata_class,
                   item_id_dict,
                   bundle_id_dict,
                   primary_bitstream_dict,
-                  statistics_dict):
+                  statistics_dict,
+                  save_dict):
     """
     Import data into database.
     Mapped tables: item2bundle, bundle
     """
     item2bundle_json_name = 'item2bundle.json'
     bundle_json_name = 'bundle.json'
+    saved_bundle_json_name = 'bundle_dict.json'
     item_url = 'core/items/'
     imported = 0
     # load item2bundle into dict
@@ -61,6 +63,9 @@ def import_bundle(metadata_class,
                 logging.error('POST request ' + bundle_url +
                               ' failed. Exception: ' + str(e))
 
+    # save bundle dict as json
+    if save_dict:
+        save_dict_as_json(saved_bundle_json_name, bundle_id_dict)
     statistics_val = (statistics_dict['item2bundle'][0], imported)
     statistics_dict['item2bundle'] = statistics_val
     logging.info("Bundle and Item2Bundle were successfully imported!")

@@ -1,6 +1,6 @@
 import logging
 
-from utils import read_json, do_api_post
+from data_pump.utils import read_json, do_api_post
 
 
 def import_tasklistitem(workflowitem_id_dict,
@@ -26,6 +26,8 @@ def import_tasklistitem(workflowitem_id_dict,
             response = do_api_post(tasklistitem_url, params, None)
             if response.ok:
                 imported_tasklistitem += 1
+            else:
+                raise Exception(response)
         except Exception as e:
             logging.error('POST request ' + tasklistitem_url + ' failed. Exception: ' +
                           str(e))
