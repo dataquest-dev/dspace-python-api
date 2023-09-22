@@ -61,7 +61,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Upload values into dictionaries')
     parser.add_argument('--load_dict_bool',
                         help='bool value if we load values into dict',
-                        required=False, type=bool, default=True)
+                        required=False, type=bool, default=False)
     parser.add_argument('--save_dict_bool',
                         help='bool value if we save dict values into jsons',
                         required=False, type=bool, default=False)
