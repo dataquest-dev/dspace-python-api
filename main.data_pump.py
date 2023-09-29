@@ -65,7 +65,7 @@ if __name__ == "__main__":
                         required=False, type=bool, default=False)
     parser.add_argument('--save_dict_bool',
                         help='bool value if we save dict values into jsons',
-                        required=False, type=bool, default=True)
+                        required=False, type=bool, default=False)
     args = parser.parse_args()
 
     # Is the email server really off?
