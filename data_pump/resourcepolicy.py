@@ -1,11 +1,11 @@
 import logging
 import psycopg2
 
-from data_pump.utils import read_json, convert_response_to_json, do_api_get, \
-do_api_post
+from data_pump.utils import read_json, convert_response_to_json, do_api_post
 
 from const import CLARIN_DSPACE_7_NAME, CLARIN_DSPACE_7_HOST, \
-    CLARIN_DSPACE_7_USER, CLARIN_DSPACE_7_PASSWORD
+    CLARIN_DSPACE_7_USER, CLARIN_DSPACE_7_PASSWORD, COMMUNITY, COLLECTION,\
+    ITEM, BUNDLE, BITSTREAM
 from migration_const import ACTIONS_LIST
 
 
@@ -28,29 +28,31 @@ def import_resource_policies(community_id_dict,
         try:
             # find object id based on its type
             type = res_policy['resource_type_id']
-            if type == 4:
+            if type == COMMUNITY:
                 params['resource'] = community_id_dict[res_policy['resource_id']]
-            elif type == 3:
+            elif type == COLLECTION:
                 params['resource'] = collection_id_dict[res_policy['resource_id']]
-            elif type == 2:
+            elif type == ITEM:
                 params['resource'] = item_id_dict[res_policy['resource_id']]
-            elif type == 1:
+            elif type == BUNDLE:
                 params['resource'] = bundle_id_dict[res_policy['resource_id']]
-            elif type == 0:
+            elif type == BITSTREAM:
                 params['resource'] = bitstream_id_dict[res_policy['resource_id']]
             # in resource there is action as id, but we need action as text
             actionId = res_policy['action_id']
             # control, if action is entered correctly
             if actionId < 0 or actionId >= len(ACTIONS_LIST):
                 logging.error('Cannot do POST request ' + res_policy_url + ' for id: ' +
-                              str(res_policy['policy_id']) + ' because action id: ' + str(actionId) +
-                              ' does not exist.')
+                              str(res_policy['policy_id']) + ' because action id: '
+                              + str(actionId) + ' does not exist.')
                 unimported += 1
                 continue
             # create object for request
-            json_p = {'action': ACTIONS_LIST[actionId], 'startDate': res_policy['start_date'],
+            json_p = {'action': ACTIONS_LIST[actionId], 'startDate':
+                      res_policy['start_date'],
                       'endDate': res_policy['end_date'], 'name': res_policy['rpname'],
-                      'policyType': res_policy['rptype'], 'description': res_policy['rpdescription']}
+                      'policyType': res_policy['rptype'], 'description':
+                          res_policy['rpdescription']}
             # resource policy has defined eperson or group, not the both
             # get eperson if it is not none
             if res_policy['eperson_id'] is not None:
@@ -58,7 +60,7 @@ def import_resource_policies(community_id_dict,
                 # create resource policy
                 response = do_api_post(res_policy_url, params, json_p)
                 response = convert_response_to_json(response)
-                response_id = response['id']
+                response['id']
                 imported += 1
                 continue
 
@@ -71,21 +73,25 @@ def import_resource_policies(community_id_dict,
                     params['group'] = group
                     response = do_api_post(res_policy_url, params, json_p)
                     response = convert_response_to_json(response)
-                    response_id = response['id']
+                    response['id']
                     imported += 1
             else:
                 logging.error('Cannot do POST request ' + res_policy_url + ' for id: ' +
-                              str(res_policy['policy_id']) + ' because any eperson or group is defined.')
+                              str(res_policy['policy_id']) +
+                              ' because neither eperson nor group is defined.')
                 unimported += 1
                 continue
         except Exception as e:
             logging.error('POST request ' + res_policy_url + ' for id: ' +
-                          str(res_policy['policy_id']) + ' failed. Exception: ' + str(e))
+                          str(res_policy['policy_id']) + ' '
+                                                         'failed. Exception: ' + str(e))
             unimported += 1
 
     # write statistic
-    statistics_dict['resourcepolicy'] = {'expected: ': len(res_policy_json_list), 'imported': imported,
-            'duplicated': def_read, 'unimported': unimported}
+    statistics_dict['resourcepolicy'] = {'expected: ': len(res_policy_json_list),
+                                         'imported': imported,
+                                         'duplicated': def_read,
+                                         'unimported': unimported}
 
 
 def delete_all_resource_policy():
@@ -102,7 +108,7 @@ def delete_all_resource_policy():
     )
     # access to 0. position, because the fetchone returns tuple
     expected = cursor.fetchone()[0]
-    # delete all data where resource_type_id is not 5
+    # delete all data
     cursor.execute(
         "DELETE FROM public.resourcepolicy")
     deleted = cursor.rowcount
