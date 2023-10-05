@@ -66,6 +66,7 @@ def get_data_from_database():
     return resource_ids_list
 
 if __name__ == "__main__":
+    _logger.info('Resource policies checker for anonymous view of items')
     item_dict_json = "item_dict.json"
     handle_json = "handle.json"
     # get a dictionary mapping dspace5 IDs to dspace7 IDs for items
