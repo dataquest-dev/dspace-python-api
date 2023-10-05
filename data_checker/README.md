@@ -34,9 +34,7 @@
    - **NOTE:** dspace server must be running
    - From the `dspace-python-api/data_checker` run command `python main.resource_policy_pump.py`
 
-4. Check `logs.log` in `dspace-python-api` for `Resource policies checker for anonymous view of items`
-   - WARNING: this item may be discoverable or withdrown - check it in dspace5
-   - ERROR: anonymous have acces to this item in Dspace7 and NO in Dspace5!!
+4. Check `logs.log` for `Resource policies checker for anonymous view of items`
 
     
     

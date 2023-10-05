@@ -5,7 +5,8 @@ import psycopg2
 
 import const
 
-from data_pump.utils import create_dict_from_json, read_json, convert_response_to_json
+from data_pump.utils import create_dict_from_json, read_json, \
+    convert_response_to_json, do_api_get_one
 from support.dspace_proxy import rest_proxy
 
 logging.basicConfig(level=logging.INFO)
@@ -36,7 +37,8 @@ def get_data_from_database():
                             host=const.CLARIN_DSPACE_HOST,
                             user=const.CLARIN_DSPACE_USER,
                             password=const.CLARIN_DSPACE_PASSWORD)
-    logging.info("Connection to database " + const.CLARIN_DSPACE_NAME + " was successful!")
+    logging.info("Connection to database " + const.CLARIN_DSPACE_NAME +
+                 " was successful!")
     # create select
     # we want all resource_ids for items
     # where the action is READ
@@ -79,13 +81,18 @@ if __name__ == "__main__":
     item_ids_list=[]
     # get total pages for search
     # max page size for this request is 100
-    response = rest_proxy.get('discover/search/objects?sort=score,DESC&size=100&page=0&configuration=default&dsoType=ITEM&embed=thumbnail&embed=item%2Fthumbnail')
+    response = rest_proxy.get('discover/search/objects?sort=score,'
+                              'DESC&size=100&page=0&configuration=default'
+                              '&dsoType=ITEM&embed=thumbnail&embed=item%2Fthumbnail')
     response_json = convert_response_to_json(response)
     totalPages = objects = response_json['_embedded']['searchResult']['page']['totalPages']
     # get result from each page
     # we don't get items which are withdrawn or discoverable
     for page in range(totalPages):
-        response = rest_proxy.get('discover/search/objects?sort=score,DESC&size=100&page=' + str(page) +'&configuration=default&dsoType=ITEM&embed=thumbnail&embed=item%2Fthumbnail')
+        response = rest_proxy.get('discover/search/objects?sort=score,DESC&size=100&page=' +
+                                  str(page) +
+                                  '&configuration=default&'
+                                  'dsoType=ITEM&embed=thumbnail&embed=item%2Fthumbnail')
         response_json = convert_response_to_json(response)
         objects = response_json['_embedded']['searchResult']['_embedded']['objects']
         # add each object to result list
@@ -93,26 +100,35 @@ if __name__ == "__main__":
             item_ids_list.append(item['_embedded']['indexableObject']['id'])
 
     # compare expected items in dspace5 and got items from dspace7
-    # log items, which we cannot find (NOTE: these items can be discoverable or withdrawn - we did not get these items from dspace7)
-    # you should check it in dspace5 if there will be some items in the log
+    # log items, which we cannot find
+    item_url = 'core/items'
     for id_ in new_item_list:
         if id_ in item_ids_list:
             item_ids_list.remove(id_)
         else:
-            _logger.warning('Did not get resource policy for item: ' + id_ + '. Check if item is discoverable or withdraw.')
-    #now in new_item_list are items whose resource_policy was not found in dspace5
+            # check if we really don't have access to item in Dspace7
+            response = do_api_get_one(item_url, id_)
+            if not response.ok:
+                _logger.error('Do not exist resource policy of anonymous READ for item: ' +
+                              id_ + ' in dspace7!')
+    #now in new_item_list are items whose resource_policy
+    # was not found in dspace5
     # it could be because in dspace7 is using inheritance for resource policies
-    # check if you have access for these items in dspace5 based on their handles or there was import error
+    # check if you have access for these items in dspace5
+    # based on their handles or there was import error
     item_lindat_url = 'https://lindat.mff.cuni.cz/repository/xmlui/handle/'
     # load handle_json
     handle_json = read_json(handle_json)
     # create dict
     handle_dict = {}
     # handle has to be defined for item and item has to exist
-    handle_dict = {item_dict[handle['resource_id']]: handle['handle'] for handle in handle_json if
-                   handle['resource_type_id'] == 2 and handle['resource_id'] in item_dict}
+    handle_dict = {item_dict[handle['resource_id']]: handle['handle']
+                   for handle in handle_json if
+                   handle['resource_type_id'] == 2 and
+                   handle['resource_id'] in item_dict}
     # do request to dspace5 for remaining items
     for id_ in item_ids_list:
         response = requests.get(item_lindat_url + handle_dict[id_])
         if not response.ok:
-            _logger.error('Do not exist resource policy of anonymous READ for item: ' + id_ + ' in dspace5!')
+            _logger.error('Do not exist resource policy of '
+                          'anonymous READ for item: ' + id_ + ' in dspace5!')
