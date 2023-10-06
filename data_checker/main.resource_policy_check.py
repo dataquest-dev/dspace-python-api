@@ -148,9 +148,8 @@ if __name__ == "__main__":
             found += 1
         else:
             _logger.error(f"Item with id {id_} is visible in Dspace7 but not in Dspace5! This is a data breach!")
-            notfound += 1
+            raise Exception(f"Item with id {id_} is visible in Dspace7 but not in Dspace5! This is a data breach!")
     statistics["Count of visible items from Dspace7 didn't found in Dspace5 but they are visible there too"] = found
-    statistics["Count of visible items from Dspace7 aren't visible in Dspace5"] = notfound
 
     # write statistics to logs
     for key, value in statistics.items():
