@@ -10,7 +10,7 @@ from data_pump.utils import create_dict_from_json, read_json, \
 from support.dspace_proxy import rest_proxy
 
 logging.basicConfig(level=logging.INFO)
-_logger = logging.getLogger("root")
+_logger = logging.getLogger("resource_checker")
 
 
 def convert_old_ids_to_new(old_object_ids, map_dict):
@@ -68,13 +68,15 @@ def get_data_from_database():
     return resource_ids_list
 
 if __name__ == "__main__":
-    _logger.info('Resource policies checker for anonymous view of items')
+    _logger.info('Resource policies checker of anonymous view of items')
+    statistics = {}
     item_dict_json = "item_dict.json"
     handle_json = "handle.json"
     # get a dictionary mapping dspace5 IDs to dspace7 IDs for items
     item_dict = create_dict_from_json(item_dict_json)
     # get IDs of item from dspace5 base od select
     old_item_list = get_data_from_database()
+    statistics['Count of visible items in Dspace5'] = len(old_item_list)
     # get IDs for dspace7 from IDs from dspace5 based on map
     new_item_list = convert_old_ids_to_new(old_item_list, item_dict)
     # list od item IDs from dspace7 which can READ Anonymous
@@ -98,19 +100,30 @@ if __name__ == "__main__":
         # add each object to result list
         for item in objects:
             item_ids_list.append(item['_embedded']['indexableObject']['id'])
-
+    statistics['Count of visible items in Dspace7'] = len(item_ids_list)
     # compare expected items in dspace5 and got items from dspace7
     # log items, which we cannot find
     item_url = 'core/items'
+    notfound = 0
+    notfound_but_visible = 0
+    found = 0
     for id_ in new_item_list:
         if id_ in item_ids_list:
             item_ids_list.remove(id_)
+            found += 1
         else:
             # check if we really don't have access to item in Dspace7
             response = do_api_get_one(item_url, id_)
-            if not response.ok:
-                _logger.error('Do not exist resource policy of anonymous READ for item: ' +
-                              id_ + ' in dspace7!')
+            if response.ok:
+                notfound_but_visible += 1
+            else:
+                _logger.error(f"Item with id: {id_} is not visible in DSpace7, "
+                              f"but it is visible in DSpace5! Import of resource policies was incorrect!")
+                notfound += 1
+    statistics['Count of visible items from Dspace5 in Dspace7'] = found
+    statistics[("Count of visible items from Dspace5 didn't found in Dspace7"
+                "but they are visible there too")] = notfound_but_visible
+    statistics["Count of visible items from Dspace5 didn't found in Dspace7"] = notfound
     #now in new_item_list are items whose resource_policy
     # was not found in dspace5
     # it could be because in dspace7 is using inheritance for resource policies
@@ -127,8 +140,18 @@ if __name__ == "__main__":
                    handle['resource_type_id'] == 2 and
                    handle['resource_id'] in item_dict}
     # do request to dspace5 for remaining items
+    found = 0
+    notfound = 0
     for id_ in item_ids_list:
         response = requests.get(item_lindat_url + handle_dict[id_])
-        if not response.ok:
-            _logger.error('Do not exist resource policy of '
-                          'anonymous READ for item: ' + id_ + ' in dspace5!')
+        if response.ok:
+            found += 1
+        else:
+            _logger.error(f"Item with id {id_} is visible in Dspace7 but not in Dspace5! This is a data breach!")
+            notfound += 1
+    statistics["Count of visible items from Dspace7 didn't found in Dspace5 but they are visible there too"] = found
+    statistics["Count of visible items from Dspace7 aren't visible in Dspace5"] = notfound
+
+    # write statistics to logs
+    for key, value in statistics.items():
+        _logger.info(f"{key}: {value}")

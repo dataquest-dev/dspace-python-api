@@ -3,17 +3,10 @@
 
 ## How to use it:
 1. Update `const.py`
-   - `user = "<ADMIN_NAME>"`
-   - `password = "<ADMIN_PASSWORD>"`
-
-   - `# http or https`
    - `use_ssl = False`
-   - `host = "<YOUR_SERVER>" e.g., localhost`
-   - `# host = "dev-5.pc"`
+   - `host = "<YOUR_SERVER>"`
    - `fe_port = "<YOUR_FE_PORT>"`
-   - `# fe_port = ":4000"`
    - `be_port = "<YOUR_BE_PORT>"`
-   - `# be_port = ":8080"`
    - `be_location = "/server/"`
    
    - `authentication = False` - we test anonymous access
@@ -34,7 +27,7 @@
    - **NOTE:** dspace server must be running
    - From the `dspace-python-api/data_checker` run command `python main.resource_policy_pump.py`
 
-4. Check `logs.log` for `Resource policies checker for anonymous view of items`
+4. Check `logs.log` in `data_checker` for `Resource policies checker of anonymous view of items`
 
     
     
