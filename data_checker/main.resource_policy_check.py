@@ -69,16 +69,28 @@ def get_data_from_database():
 
 if __name__ == "__main__":
     _logger.info('Resource policies checker of anonymous view of items')
-    statistics = {}
     item_dict_json = "item_dict.json"
     handle_json = "handle.json"
+
+    statistics = {}
+    # keys for statistics
+    DSPACE5_STR = 'Count of visible items in Dspace5'
+    DSPACE7_STR = 'Count of visible items in Dspace7'
+    VISIBLE_STR = 'Count of visible items from Dspace5 in Dspace7'
+    NOTFOUND_VISIBLE_STR = ("Count of visible items from Dspace5 didn't found in Dspace7 "
+                        "but they are visible there too")
+    NOTFOUND_STR = "Count of visible items from Dspace5 didn't found in Dspace7"
+    INHERITED_STR = ("Count of visible items from Dspace7 didn't found "
+                     "in Dspace5 but they are visible there too")
+
     # get a dictionary mapping dspace5 IDs to dspace7 IDs for items
     item_dict = create_dict_from_json(item_dict_json)
     # get IDs of item from dspace5 base od select
     old_item_list = get_data_from_database()
-    statistics['Count of visible items in Dspace5'] = len(old_item_list)
+    statistics[DSPACE5_STR] = len(old_item_list)
     # get IDs for dspace7 from IDs from dspace5 based on map
     new_item_list = convert_old_ids_to_new(old_item_list, item_dict)
+
     # list od item IDs from dspace7 which can READ Anonymous
     item_ids_list=[]
     # get total pages for search
@@ -100,7 +112,8 @@ if __name__ == "__main__":
         # add each object to result list
         for item in objects:
             item_ids_list.append(item['_embedded']['indexableObject']['id'])
-    statistics['Count of visible items in Dspace7'] = len(item_ids_list)
+    statistics[DSPACE7_STR] = len(item_ids_list)
+
     # compare expected items in dspace5 and got items from dspace7
     # log items, which we cannot find
     item_url = 'core/items'
@@ -118,12 +131,13 @@ if __name__ == "__main__":
                 notfound_but_visible += 1
             else:
                 _logger.error(f"Item with id: {id_} is not visible in DSpace7, "
-                              f"but it is visible in DSpace5! Import of resource policies was incorrect!")
+                              f"but it is visible in DSpace5! "
+                              f"Import of resource policies was incorrect!")
                 notfound += 1
-    statistics['Count of visible items from Dspace5 in Dspace7'] = found
-    statistics[("Count of visible items from Dspace5 didn't found in Dspace7"
-                "but they are visible there too")] = notfound_but_visible
-    statistics["Count of visible items from Dspace5 didn't found in Dspace7"] = notfound
+    statistics[VISIBLE_STR] = found
+    statistics[NOTFOUND_VISIBLE_STR] = notfound_but_visible
+    statistics[NOTFOUND_STR] = notfound
+
     #now in new_item_list are items whose resource_policy
     # was not found in dspace5
     # it could be because in dspace7 is using inheritance for resource policies
@@ -147,9 +161,11 @@ if __name__ == "__main__":
         if response.ok:
             found += 1
         else:
-            _logger.error(f"Item with id {id_} is visible in Dspace7 but not in Dspace5! This is a data breach!")
-            raise Exception(f"Item with id {id_} is visible in Dspace7 but not in Dspace5! This is a data breach!")
-    statistics["Count of visible items from Dspace7 didn't found in Dspace5 but they are visible there too"] = found
+            _logger.error(f"Item with id {id_} is visible in Dspace7 "
+                          f"but not in Dspace5! This is a data breach!")
+            raise Exception(f"Item with id {id_} is visible in Dspace7 but "
+                            f"not in Dspace5! This is a data breach!")
+    statistics[INHERITED_STR] = found
 
     # write statistics to logs
     for key, value in statistics.items():

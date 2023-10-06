@@ -74,7 +74,7 @@ Update `const.py`
 - `# be_port = ":8080"`
 - `be_location = "/server/"`
 
-**NOTE:** Be sure, that `authorization = True`, because some of the using endpoints won't work
+**NOTE:** Be sure, that `authorization = True`, because some of the used endpoints won't work
 
 ***
 8. Create JSON files from the database tables. **NOTE: You must do it for both databases `clarin-dspace` and `clarin-utilities`** (JSON files are stored in the `data` folder)
@@ -90,7 +90,7 @@ e.g.,`handle.additional.prefixes = 11858, 11234, 11372, 11346, 20.500.12801, 20.
 10. Copy `assetstore` from dspace5 to dspace7 (for bitstream import). `assetstore` is in the folder where you have installed DSpace `dspace/assetstore`.
 
 ***
-11. Create `icon/` folder if it doesn't exist in project and copy there all using icons.
+11. Create `icon/` folder if it doesn't exist in project and copy all the icons that are used into it.
 
 ***
 12. Import data from the json files (python-api/data/*) into dspace database (CLARIN-DSpace7.*)
