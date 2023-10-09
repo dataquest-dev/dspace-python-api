@@ -69,12 +69,16 @@ def import_resource_policies(community_id_dict,
                 group_list = group_id_dict[res_policy['epersongroup_id']]
                 if len(group_list) > 1:
                     def_read += 1
-                for group in group_list:
-                    params['group'] = group
-                    response = do_api_post(res_policy_url, params, json_p)
-                    response = convert_response_to_json(response)
-                    response['id']
-                    imported += 1
+                # if action is DEFAULT_ITEM_READ, we want to add this resource policy only for group
+                # DEFAULT_ITEM_READ, whose is mapping on the position 1
+                if len(group_list) > 1 and actionId == 10:
+                    params['group'] = group_list[1]
+                else:
+                    params['group'] = group_list[0]
+                response = do_api_post(res_policy_url, params, json_p)
+                response = convert_response_to_json(response)
+                response['id']
+                imported += 1
             else:
                 logging.error('Cannot do POST request ' + res_policy_url + ' for id: ' +
                               str(res_policy['policy_id']) +

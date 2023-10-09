@@ -1,6 +1,10 @@
 eperson_id_dict = {}
 email2epersonId_dict = {}
 user_registration_id_dict = {}
+# key contains list of values
+# length of list is max 2
+# if length is 2, on the position 0 is group for BITSTREAM_DEFAULT_READ
+# and on the osition 1 is fpr ITEM_BITSTREAM_READ
 group_id_dict = {}
 community_id_dict = {}
 community2logo_dict = {}
