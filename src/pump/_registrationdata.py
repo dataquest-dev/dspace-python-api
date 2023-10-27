@@ -1,0 +1,58 @@
+import logging
+from tqdm import tqdm
+from ._utils import read_json, time_method, serialize, deserialize
+
+_logger = logging.getLogger("pump.registrationdata")
+
+
+class registrationdatas:
+    """
+        SQL:
+            delete from registrationdata ;
+    """
+
+    def __init__(self, col_rd_str: str):
+        self._rd = read_json(col_rd_str)
+        self._imported = {
+            "rd": 0,
+        }
+
+        if len(self._rd) == 0:
+            _logger.info(f"Empty input: [{col_rd_str}].")
+            return
+
+    def __len__(self):
+        return len(self._rd)
+
+    @property
+    def imported(self):
+        return self._imported['rd']
+
+    @time_method
+    def import_to(self, dspace):
+        _logger.info(f"Importing communities [{len(self)}]")
+        for rd in tqdm(self._rd):
+            data = {'email': rd['email']}
+            params = {'accountRequestType': 'register'}
+            try:
+                resp = dspace.put_registrationdata(params, data)
+                self._imported["rd"] += 1
+            except Exception as e:
+                _logger.error(
+                    f'put_registrationdata [{rd["email"]}]: failed. Exception: [{str(e)}]')
+
+        _logger.info(f"Registrationdata [{self.imported}] imported")
+
+    # =============
+
+    def serialize(self, file_str: str):
+        data = {
+            "rd": self._rd,
+            "imported": self._imported,
+        }
+        serialize(file_str, data)
+
+    def deserialize(self, file_str: str):
+        data = deserialize(file_str)
+        self._rd = data["rd"]
+        self._imported = data["imported"]
