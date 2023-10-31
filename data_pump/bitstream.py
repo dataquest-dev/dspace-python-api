@@ -24,8 +24,14 @@ def import_bitstream(metadata_class,
     """
     bitstream_json_name = 'bitstream.json'
     bundle2bitstream_json_name = 'bundle2bitstream.json'
+    bitsteamformat_json_name = 'bitstreamformatregistry.json'
     bitstream_url = 'clarin/import/core/bitstream'
     imported = 0
+
+    bitstreamformat_json_list = read_json(bitsteamformat_json_name)
+    if not bitstreamformat_json_list:
+        logging.info("Bitstreamformatregistry JSON is empty.")
+        return
 
     # load bundle2bitstream
     bundle2bitstream_json_list = read_json(bundle2bitstream_json_name)
@@ -66,8 +72,7 @@ def import_bitstream(metadata_class,
             bitstream['bitstream_format_id'] = unknown_format_id_val
         params = {'internal_id': bitstream['internal_id'],
                   'storeNumber': bitstream['store_number'],
-                  'bitstreamFormat': bitstreamformat_id_dict[
-                      bitstream['bitstream_format_id']],
+                  'bitstreamFormat': bitstreamformat_json_list[bitstream['bitstream_format_id']]['mimetype'],
                   'deleted': bitstream['deleted'],
                   'sequenceId': bitstream['sequence_id'],
                   'bundle_id': None,
