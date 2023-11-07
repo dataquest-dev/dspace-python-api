@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.eperson")
 
@@ -70,7 +69,7 @@ class epersons:
         """
         _logger.info(f"Importing eperson [{len(self._epersons)}]")
 
-        for e in tqdm(self._epersons):
+        for e in progress_bar(self._epersons):
             e_id = e['eperson_id']
 
             data = {
@@ -151,7 +150,7 @@ class groups:
     def import_to(self, dspace, groups, epersons):
         _logger.info(f"Importing epersongroup2eperson [{len(self._groups)}]")
 
-        for g in tqdm(self._groups):
+        for g in progress_bar(self._groups):
             g_id = g['eperson_group_id']
             e_id = g['eperson_id']
             try:

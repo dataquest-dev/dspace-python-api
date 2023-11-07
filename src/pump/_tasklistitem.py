@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.tasklistitem")
 
@@ -32,7 +31,7 @@ class tasklistitems:
     @time_method
     def import_to(self, dspace, epersons, items):
         _logger.info(f"Importing tasks [{len(self)}]")
-        for task in tqdm(self._tasks):
+        for task in progress_bar(self._tasks):
             try:
                 params = {
                     'epersonUUID': epersons.uuid(task['eperson_id']),

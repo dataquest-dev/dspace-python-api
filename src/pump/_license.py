@@ -1,7 +1,6 @@
 import os
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.license")
 
@@ -53,7 +52,7 @@ class licenses:
         """
         _logger.info(f"Importing license labels [{len(self._labels)}]")
 
-        for label in tqdm(self._labels):
+        for label in progress_bar(self._labels):
             l_id = label['label_id']
             data = {
                 'label': label['label'],
@@ -94,7 +93,7 @@ class licenses:
         _logger.info(f"Importing license defs [{len(self._licenses)}]")
 
         # import license_definition
-        for lic in tqdm(self._licenses):
+        for lic in progress_bar(self._licenses):
             lic_id = lic['license_id']
             lab_id = lic['label_id']
             updated_def = update_license_def(env, lic['definition'])

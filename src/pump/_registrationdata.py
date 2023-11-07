@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.registrationdata")
 
@@ -31,7 +30,7 @@ class registrationdatas:
     @time_method
     def import_to(self, dspace):
         _logger.info(f"Importing communities [{len(self)}]")
-        for rd in tqdm(self._rd):
+        for rd in progress_bar(self._rd):
             data = {'email': rd['email']}
             params = {'accountRequestType': 'register'}
             try:

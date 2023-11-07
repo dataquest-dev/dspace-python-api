@@ -9,7 +9,7 @@ settings = {
     "resume_dir": "__temp/resume/",
 
     "backend": {
-        "endpoint": "http://dev-5.pc:85/server/api/",
+        "endpoint": "http://dev-5.pc:88/server/api/",
         "user": "test@test.edu",
         "password": "admin",
         "authentication": True,
@@ -30,6 +30,7 @@ settings = {
         "host": "localhost",
         "user": "postgres",
         "password": "dspace",
+        "port": 5432,
     },
 
     "db_utilities_5": {
@@ -37,6 +38,7 @@ settings = {
         "host": "localhost",
         "user": "postgres",
         "password": "dspace",
+        "port": 5432,
     },
 
     "input": {

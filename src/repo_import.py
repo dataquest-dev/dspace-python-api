@@ -6,7 +6,7 @@ import logging
 
 import settings
 import project_settings
-from utils import init_logging, update_settings
+from utils import init_logging, update_settings, exists_key, set_key
 
 _logger = logging.getLogger()
 
@@ -49,11 +49,23 @@ if __name__ == "__main__":
     parser.add_argument('--resume',
                         help='Resume by loading values into dictionary',
                         required=False, type=bool, default=True)
-    parser.add_argument('--save_dict_bool',
-                        help='bool value if we save dict values into jsons',
-                        required=False, type=bool, default=False)
+    parser.add_argument('--config',
+                        help='Update configs',
+                        required=False, type=str, action='append')
+
     args = parser.parse_args()
     s = time.time()
+
+    for k, v in [x.split("=") for x in (args.config or [])]:
+        _logger.info(f"Updating [{k}]->[{v}]")
+        _1, prev_val = exists_key(k, env, True)
+        if isinstance(prev_val, bool):
+            new_val = str(v).lower() in ("true", "t", "1")
+        elif prev_val is None:
+            new_val = str(v)
+        else:
+            new_val = type(prev_val)(v)
+        set_key(k, new_val, env)
 
     # just in case
     # verify_disabled_mailserver()

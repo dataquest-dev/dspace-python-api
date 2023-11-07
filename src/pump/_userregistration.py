@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.userregistration")
 
@@ -37,7 +36,7 @@ class userregistrations:
         """
         _logger.info(f"Importing userregistration [{len(self)}]!")
 
-        for ur in tqdm(self._ur):
+        for ur in progress_bar(self._ur):
             data = {
                 'email': ur['email'],
                 'organization': ur['organization'],

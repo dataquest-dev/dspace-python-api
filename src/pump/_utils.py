@@ -95,3 +95,15 @@ IMPORT_LIMIT = None
 if os.environ.get("IMPORT_LIMIT", "0") != "0":
     IMPORT_LIMIT = int(os.environ["IMPORT_LIMIT"])
     _logger.critical(f"Using import limit [{IMPORT_LIMIT}]")
+
+
+def progress_bar(arr):
+    if len(arr) < 2:
+        return iter(arr)
+    try:
+        from tqdm import tqdm
+    except Exception as e:
+        return iter(arr)
+
+    mininterval = 5 if len(arr) < 500 else 10
+    return tqdm(arr, mininterval=mininterval, maxinterval=2 * mininterval)

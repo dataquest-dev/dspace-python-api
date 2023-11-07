@@ -1,6 +1,5 @@
 import logging
 from json import JSONDecodeError
-from tqdm import tqdm
 from ._http import response_to_json
 from .impl import client
 
@@ -13,6 +12,18 @@ def ascii(s, default="unknown"):
     except Exception as e:
         pass
     return default
+
+
+def progress_bar(arr):
+    if len(arr) < 2:
+        return iter(arr)
+    try:
+        from tqdm import tqdm
+    except Exception as e:
+        return iter(arr)
+
+    mininterval = 5 if len(arr) < 500 else 10
+    return tqdm(arr, mininterval=mininterval, maxinterval=2 * mininterval)
 
 
 class rest:
@@ -37,15 +48,15 @@ class rest:
             400: lambda r: self._resp_error(r)
         }
 
-        self.endpoint = endpoint
         self.client = client.DSpaceClient(
-            api_endpoint=self.endpoint, username=user, password=password)
+            api_endpoint=endpoint, username=user, password=password)
         if auth:
             if not self.client.authenticate():
                 _logger.error(f'Error auth to dspace REST API at [{endpoint}]!')
                 raise ConnectionError("Cannot connect to dspace!")
             _logger.debug(f"Successfully logged in to [{endpoint}]")
         _logger.info(f"DSpace REST backend is available at [{endpoint}]")
+        self.endpoint = endpoint.rstrip("/")
 
     # =======
 
@@ -384,7 +395,6 @@ class rest:
         if params is not None:
             assert len(params) == len(arr)
 
-        progress_bar = tqdm if len(arr) > 1 else lambda x: x
         for i, data in enumerate(progress_bar(arr)):
             try:
                 param = params[i] if params is not None else None
@@ -396,7 +406,13 @@ class rest:
                 except Exception:
                     yield r
             except Exception as e:
-                msg = f'POST [{url}] for [{ascii(data)[:80]}...] failed. Exception: [{str(e)}]'
+                ascii_data = ascii(data)
+                # poor man's anonymize
+                if "@" in ascii_data or "email" in ascii_data:
+                    ascii_data = ascii_data[:5]
+                if len(ascii_data) > 80:
+                    ascii_data = f"{ascii_data[:70]}..."
+                msg = f'POST [{url}] for [{ascii_data}] failed. Exception: [{str(e)}]'
                 _logger.error(msg)
                 yield None
         _logger.debug(f"Imported [{url}] successfully")

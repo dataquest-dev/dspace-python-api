@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.metadata")
 
@@ -162,7 +161,7 @@ class metadatas:
         def find_existing(short_id):
             return next((e for e in existed_schemas if e['prefix'] == short_id), None)
 
-        for schema in tqdm(self._schemas):
+        for schema in progress_bar(self._schemas):
             meta_id = schema['metadata_schema_id']
 
             existing = find_existing(schema['short_id'])
@@ -181,7 +180,7 @@ class metadatas:
                     schema_id = resp['id']
                 except Exception as e:
                     _logger.error(
-                        f'POST request for id: {meta_id} failed. Exception: {str(e)}')
+                        f'put_metadata_schema [{meta_id}] failed. Exception: {str(e)}')
                     continue
 
             self._schemas_id2id[str(meta_id)] = schema_id
@@ -211,7 +210,7 @@ class metadatas:
                 return e
             return None
 
-        for field in tqdm(self._fields):
+        for field in progress_bar(self._fields):
             field_id = field["metadata_field_id"]
             schema_id = field['metadata_schema_id']
             e = field['element']
@@ -234,7 +233,7 @@ class metadatas:
                     ext_field_id = resp['id']
                 except Exception as e:
                     _logger.error(
-                        f'POST request for id: {str(field_id)} failed. Exception: {str(e)}')
+                        f'put_metadata_field [{str(field_id)}] failed. Exception: {str(e)}')
                     continue
 
             self._fields_id2uuid[str(field_id)] = ext_field_id

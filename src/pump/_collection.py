@@ -1,8 +1,7 @@
 import logging
 import re
-from tqdm import tqdm
 from ._group import groups
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.collection")
 
@@ -76,7 +75,7 @@ class collections:
         _logger.info(f"Importing collections [{len(self)}]")
         coll2com = {x['collection_id']: x['community_id'] for x in self._com2col}
 
-        for col in tqdm(self._col):
+        for col in progress_bar(self._col):
             col_id = col['collection_id']
 
             data = {}

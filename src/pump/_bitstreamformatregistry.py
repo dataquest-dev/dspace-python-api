@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.bitstreamformatregistry")
 
@@ -64,7 +63,7 @@ class bitstreamformatregistry:
             2: 'SUPPORTED',
         }
 
-        for bf in tqdm(self._reg):
+        for bf in progress_bar(self._reg):
             try:
                 level_str = map[bf['support_level']]
             except Exception as e:

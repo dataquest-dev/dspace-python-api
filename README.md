@@ -62,7 +62,7 @@ or use `scripts/start.local.dspace.db.bat`.
 7. Create JSON files from the database tables. 
 **NOTE: You must do it for both databases `clarin-dspace` and `clarin-utilities`** (JSON files are stored in the `data` folder)
 - Go to `dspace-python-api` in the cmd
-- Run `pip install -r requirements.txt`
+- Run `pip install -r requirements.txt` (maybe, `apt install libpq-dev` is needed)
 - Run  e.g., `python db_to_json.py --database=clarin-dspace`
 
 ***

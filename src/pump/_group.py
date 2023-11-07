@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.groups")
 
@@ -88,7 +87,7 @@ class groups:
         _logger.info(f"Importing epersons [{len(self._eperson)}]")
         grps = []
 
-        for eg in tqdm(self._eperson):
+        for eg in progress_bar(self._eperson):
             g_id = eg['eperson_group_id']
 
             # group Administrator and Anonymous already exist
@@ -130,7 +129,7 @@ class groups:
         """
         _logger.info(f"Importing epersons g2g [{len(self._g2g)}]")
 
-        for g2g in tqdm(self._g2g):
+        for g2g in progress_bar(self._g2g):
             parent = self.uuid(g2g['parent_id'])
             child = self.uuid(g2g['child_id'])
             if parent is None or child is None:

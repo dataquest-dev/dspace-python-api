@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.bundle")
 
@@ -52,7 +51,7 @@ class bundles:
     def import_to(self, dspace, metadatas, items):
         _logger.info(f"Importing bundles [{len(self)}]")
 
-        for item_id, bundle_arr in tqdm(self._itemid2bundle.items()):
+        for item_id, bundle_arr in progress_bar(self._itemid2bundle.items()):
             for bundle_id in bundle_arr:
                 data = {}
                 meta_bundle = metadatas.value(bundles.TYPE, bundle_id)

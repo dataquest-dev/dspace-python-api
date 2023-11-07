@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.bitstream")
 
@@ -124,7 +123,7 @@ class bitstreams:
     def _bitstream_import_to(self, env, dspace, metadatas, bitstreamformatregistry, bundles):
         _logger.info(f"Importing bitstreams [{len(self)}]")
 
-        for i, b in enumerate(tqdm(self._bs)):
+        for i, b in enumerate(progress_bar(self._bs)):
             b_id = b['bitstream_id']
 
             # do bitstream checksum

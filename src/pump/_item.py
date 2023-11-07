@@ -1,7 +1,6 @@
 import datetime
 import logging
-from tqdm import tqdm
-from ._utils import read_json, serialize, deserialize, time_method
+from ._utils import read_json, serialize, deserialize, time_method, progress_bar
 
 _logger = logging.getLogger("pump.item")
 
@@ -171,7 +170,7 @@ class items:
     def _ws_import_to(self, dspace, handles, metadatas, epersons, collections):
         _logger.info(f"Importing workspaceitems [{len(self._ws_items)}]!")
 
-        for ws in tqdm(self._ws_items):
+        for ws in progress_bar(self._ws_items):
             item = self.item(ws['item_id'])
             ret = self._import_item(dspace, ws, item, handles,
                                     metadatas, epersons, collections)
@@ -190,7 +189,7 @@ class items:
         # create workflowitem
         # workflowitem is created from workspaceitem
         # -1, because the workflowitem doesn't contain this attribute
-        for wf in tqdm(self._wf_items):
+        for wf in progress_bar(self._wf_items):
             wf_id = wf['item_id']
             item = self.item(wf_id)
             ret = self._import_item(dspace, wf, item, handles,
@@ -218,7 +217,7 @@ class items:
         without_col = 0
 
         # create other items
-        for item in tqdm(self._items):
+        for item in progress_bar(self._items):
             i_id = item['item_id']
             data = {
                 'discoverable': item['discoverable'],
@@ -277,7 +276,7 @@ class items:
             self._col_id2uuid.setdefault(item_uuid, []).append(col_uuid)
 
         # Call Vanilla REST endpoint which add relation between Item and Collection into the collection2item table
-        for item_uuid, cols in tqdm(self._col_id2uuid.items()):
+        for item_uuid, cols in progress_bar(self._col_id2uuid.items()):
             if len(cols) < 2:
                 continue
             try:
@@ -335,7 +334,7 @@ class items:
         self._migrated_versions = []
 
         # Migrate versions for every Item
-        for item_id, item in tqdm(self._id2item.items()):
+        for item_id, item in progress_bar(self._id2item.items()):
             # Do not process versions of the item that have already been processed.
             if item_id in self._migrated_versions:
                 continue

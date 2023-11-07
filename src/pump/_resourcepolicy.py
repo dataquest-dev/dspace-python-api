@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.resourcepolicy")
 
@@ -62,7 +61,7 @@ class resourcepolicies:
 
         def_read = 0
 
-        for res_policy in tqdm(self._respol):
+        for res_policy in progress_bar(self._respol):
             res_id = res_policy['resource_id']
             res_type_id = res_policy['resource_type_id']
             res_uuid = uuder.get(res_type_id, res_id)

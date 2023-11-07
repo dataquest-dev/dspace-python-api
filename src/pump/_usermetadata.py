@@ -1,6 +1,5 @@
 import logging
-from tqdm import tqdm
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 
 _logger = logging.getLogger("pump.usermetadata")
 
@@ -61,7 +60,7 @@ class usermetadatas:
         _logger.info(f"Importing usermetadata [{len(self._umeta_transid2ums)}]!")
 
         # Go through dict and import user_metadata
-        for t_id, um_arr in tqdm(self._umeta_transid2ums.items()):
+        for t_id, um_arr in progress_bar(self._umeta_transid2ums.items()):
             um0 = um_arr[0]
             # Get user_registration data for importing
             ua_d = self._uallowance_transid2d[um0['transaction_id']]
