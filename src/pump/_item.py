@@ -272,8 +272,6 @@ class items:
             f"Items [{self.imported}] imported, no owning col:[{without_col}], ws items:[{ws_items}] wf items:[{wf_items}]!")
 
     def _itemcol_import_to(self, dspace, handles, metadatas, epersons, collections):
-        _logger.info(f"Importing items coll [{len(self._col2item)}]!")
-
         # Find items which are mapped in more collections and store them into dictionary in this way
         # {'item_uuid': [collection_uuid_1, collection_uuid_2]}
         for col in self._col2item:
@@ -286,6 +284,8 @@ class items:
                 continue
             col_uuid = collections.uuid(col['collection_id'])
             self._col_id2uuid.setdefault(item_uuid, []).append(col_uuid)
+
+        _logger.info(f"Importing items coll [{len(self._col_id2uuid)}]!")
 
         # Call Vanilla REST endpoint which add relation between Item and Collection into the collection2item table
         for item_uuid, cols in progress_bar(self._col_id2uuid.items()):

@@ -133,12 +133,15 @@ class bitstreams:
                 try:
                     dspace.add_checksums()
                 except Exception as e:
-                    _logger.error(f'add_checksums failed. Exception: [{str(e)}]')
+                    _logger.error(f'add_checksums failed: [{str(e)}]')
 
             data = {}
             b_meta = metadatas.value(bitstreams.TYPE, b_id)
             if b_meta is not None:
                 data['metadata'] = b_meta
+            else:
+                if not b['deleted']:
+                    _logger.warning(f'No metadata for bitstream [{b_id}]')
 
             data['sizeBytes'] = b['size_bytes']
             data['checkSum'] = {
@@ -194,7 +197,7 @@ class bitstreams:
         try:
             dspace.add_checksums()
         except Exception as e:
-            _logger.error(f'add_checksums failed. Exception: [{str(e)}]')
+            _logger.error(f'add_checksums failed: [{str(e)}]')
 
         _logger.info(f"Bitstreams [{self.imported}] imported")
 

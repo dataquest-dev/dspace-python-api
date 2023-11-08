@@ -301,7 +301,7 @@ class rest:
             calculated.
         """
         url = 'clarin/import/core/bitstream/checksum'
-        _logger.debug(f"Checkums using [{url}]")
+        _logger.debug(f"Checksums using [{url}]")
         r = self.post(url)
         if not r.ok:
             raise Exception(r)
