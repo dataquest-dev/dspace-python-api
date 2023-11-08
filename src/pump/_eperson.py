@@ -64,13 +64,19 @@ class epersons:
         return self._imported['p']
 
     @time_method
-    def import_to(self, dspace, metadatas):
+    def import_to(self, env, dspace, metadatas):
         """
         """
         _logger.info(f"Importing eperson [{len(self._epersons)}]")
 
+        ignore_eids = env.get("ignore", {}).get("epersons", [])
+
         for e in progress_bar(self._epersons):
             e_id = e['eperson_id']
+
+            if e_id in ignore_eids:
+                _logger.debug(f"Skipping eperson [{e_id}]")
+                continue
 
             data = {
                 'selfRegistered': e['self_registered'],

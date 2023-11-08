@@ -154,6 +154,8 @@ class metadatas:
             Import data into database.
             Mapped tables: metadataschemaregistry
         """
+        _logger.info(f"Importing metadata schemas [{len(self._schemas)}]")
+
         # get all existing data from database table
         existed_schemas = dspace.fetch_metadata_schemas() or []
 
@@ -193,6 +195,8 @@ class metadatas:
             Import data into database.
             Mapped tables: metadatafieldregistry
         """
+        _logger.info(f"Importing metadata fields [{len(self._fields)}]")
+
         existed_fields = dspace.fetch_metadata_fields()
 
         def find_existing(field):

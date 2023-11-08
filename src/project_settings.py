@@ -9,10 +9,15 @@ settings = {
     "resume_dir": "__temp/resume/",
 
     "backend": {
-        "endpoint": "http://dev-5.pc:88/server/api/",
+        "endpoint": "http://dev-5.pc:85/server/api/",
         "user": "test@test.edu",
         "password": "admin",
         "authentication": True,
+    },
+
+    "ignore": {
+        "missing-icons": ["PUB", "RES", "ReD", "Inf"],
+        "epersons": [198],
     },
 
     "db_dspace_7": {

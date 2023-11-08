@@ -216,6 +216,9 @@ class items:
         _logger.info(f"Importing items [{len(self._items)}]!")
         without_col = 0
 
+        ws_items = 0
+        wf_items = 0
+
         # create other items
         for item in progress_bar(self._items):
             i_id = item['item_id']
@@ -233,6 +236,14 @@ class items:
             i_handle = handles.get(items.TYPE, i_id)
             if i_handle is not None:
                 data['handle'] = i_handle
+
+            # is it already imported in WS?
+            if str(i_id) in self._ws_id2uuid:
+                ws_items += 1
+                continue
+            if str(i_id) in self._wf_id2uuid:
+                wf_items += 1
+                continue
 
             if item['owning_collection'] is None:
                 _logger.critical(f"Item without collection [{i_id}] is not valid!")
@@ -257,7 +268,8 @@ class items:
             except Exception as e:
                 _logger.error(f'put_item: [{i_id}] failed [{str(e)}]')
 
-        _logger.info(f"Items [{self.imported}] imported, without_col:[{without_col}]!")
+        _logger.info(
+            f"Items [{self.imported}] imported, no owning col:[{without_col}], ws items:[{ws_items}] wf items:[{wf_items}]!")
 
     def _itemcol_import_to(self, dspace, handles, metadatas, epersons, collections):
         _logger.info(f"Importing items coll [{len(self._col2item)}]!")

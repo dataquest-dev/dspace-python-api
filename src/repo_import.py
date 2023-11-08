@@ -160,7 +160,7 @@ if __name__ == "__main__":
     if deserialize(args.resume, repo.epersons, cache_file):
         _logger.info(f"Resuming epersons [{repo.epersons.imported}]")
     else:
-        repo.epersons.import_to(dspace_be, repo.metadatas)
+        repo.epersons.import_to(env, dspace_be, repo.metadatas)
         repo.epersons.serialize(cache_file)
 
     # import userregistrations

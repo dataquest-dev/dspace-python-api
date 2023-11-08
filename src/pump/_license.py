@@ -52,10 +52,13 @@ class licenses:
         """
         _logger.info(f"Importing license labels [{len(self._labels)}]")
 
+        no_icon_for_labels = env.get("ignore", {}).get("missing-icons", [])
+
         for label in progress_bar(self._labels):
             l_id = label['label_id']
+            l_name = label['label']
             data = {
-                'label': label['label'],
+                'label': l_name,
                 'title': label['title'],
                 'extended': label['is_extended'],
                 'icon': None
@@ -63,13 +66,14 @@ class licenses:
 
             # find image with label name
             icon_path = os.path.join(env["input"]["icondir"],
-                                     label['label'].lower() + ".png")
+                                     l_name.lower() + ".png")
             try:
-                with open(icon_path, "rb") as fin:
-                    data['icon'] = list(fin.read())
+                if l_name not in no_icon_for_labels:
+                    with open(icon_path, "rb") as fin:
+                        data['icon'] = list(fin.read())
             except Exception as e:
                 _logger.error(
-                    f"Problem reading label icon [{os.path.abspath(icon_path)}] [{label['label']}]: str(e)")
+                    f"Problem reading label icon [{os.path.abspath(icon_path)}] [{l_name}]: str(e)")
 
             try:
                 resp = dspace.put_license_label(data)

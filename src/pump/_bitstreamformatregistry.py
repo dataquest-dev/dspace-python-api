@@ -89,12 +89,12 @@ class bitstreamformatregistry:
                 try:
                     resp = dspace.put_bitstreamregistry(data)
                     ext_id = resp['id']
+                    self._imported["reg"] += 1
                 except Exception as e:
                     _logger.error(f'put_bitstreamregistry: [{bf_id}] failed [{str(e)}]')
                     continue
 
             self._id2uuid[str(bf_id)] = ext_id
-            self._imported["reg"] += 1
 
         _logger.info(
             f"Bitstreamformatregistry [{self.imported}] imported, [existed:{self.imported_existed}]")
