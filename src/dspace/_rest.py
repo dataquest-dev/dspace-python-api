@@ -4,6 +4,7 @@ from ._http import response_to_json
 from .impl import client
 
 _logger = logging.getLogger("dspace.rest")
+ANONYM_EMAIL = True
 
 
 def ascii(s, default="unknown"):
@@ -407,9 +408,10 @@ class rest:
                     yield r
             except Exception as e:
                 ascii_data = ascii(data)
-                # poor man's anonymize
-                if "@" in ascii_data or "email" in ascii_data:
-                    ascii_data = ascii_data[:5]
+                if ANONYM_EMAIL:
+                    # poor man's anonymize
+                    if "@" in ascii_data or "email" in ascii_data:
+                        ascii_data = ascii_data[:5]
                 if len(ascii_data) > 80:
                     ascii_data = f"{ascii_data[:70]}..."
                 msg = f'POST [{url}] for [{ascii_data}] failed. Exception: [{str(e)}]'
