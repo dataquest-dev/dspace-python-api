@@ -166,7 +166,7 @@ class metadatas:
 
             existing = find_existing(schema['short_id'])
             if existing is not None:
-                _logger.info(
+                _logger.debug(
                     f'Metadataschemaregistry prefix: {schema["short_id"]} already exists!')
                 schema_id = existing['id']
                 self._imported["schema_existed"] += 1
@@ -218,7 +218,7 @@ class metadatas:
 
             existing = find_existing(field)
             if existing is not None:
-                _logger.info(f'Metadatafield: {e}.{q} already exists!')
+                _logger.debug(f'Metadatafield: {e}.{q} already exists!')
                 ext_field_id = existing['id']
                 self._imported["field_existed"] += 1
             else:
