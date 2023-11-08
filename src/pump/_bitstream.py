@@ -125,6 +125,7 @@ class bitstreams:
 
         for i, b in enumerate(progress_bar(self._bs)):
             b_id = b['bitstream_id']
+            b_deleted = b['deleted']
 
             # do bitstream checksum
             # do this after every 500 imported bitstreams,
@@ -136,11 +137,12 @@ class bitstreams:
                     _logger.error(f'add_checksums failed: [{str(e)}]')
 
             data = {}
-            b_meta = metadatas.value(bitstreams.TYPE, b_id)
+            b_meta = metadatas.value(bitstreams.TYPE, b_id,
+                                     log_missing=b_deleted is False)
             if b_meta is not None:
                 data['metadata'] = b_meta
             else:
-                if not b['deleted']:
+                if not b_deleted:
                     _logger.warning(f'No metadata for bitstream [{b_id}]')
 
             data['sizeBytes'] = b['size_bytes']

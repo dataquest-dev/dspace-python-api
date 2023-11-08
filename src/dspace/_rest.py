@@ -305,7 +305,6 @@ class rest:
         r = self.post(url)
         if not r.ok:
             raise Exception(r)
-        return response_to_json(r)
 
     def put_bitstream(self, param: dict, data: dict):
         url = 'clarin/import/core/bitstream'

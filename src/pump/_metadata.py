@@ -293,19 +293,20 @@ class metadatas:
             key += '.' + field_js['qualifier']
         return key
 
-    def value(self, res_type_id: int, res_id: int, text_for_field_id: int = None):
+    def value(self, res_type_id: int, res_id: int, text_for_field_id: int = None, log_missing: bool = True):
         """
             Get metadata value for dspace object.
         """
         res_type_id = str(res_type_id)
         res_id = str(res_id)
+        log_miss = _logger.info if log_missing else _logger.debug
 
         if res_type_id not in self._values:
-            _logger.info(f'Metadata missing [{res_type_id}] type')
+            log_miss(f'Metadata missing [{res_type_id}] type')
             return None
         tp_values = self._values[res_type_id]
         if res_id not in tp_values:
-            _logger.info(f'Metadata for [{res_id}] are missing in [{res_type_id}] type')
+            log_miss(f'Metadata for [{res_id}] are missing in [{res_type_id}] type')
             return None
 
         vals = tp_values[res_id]
