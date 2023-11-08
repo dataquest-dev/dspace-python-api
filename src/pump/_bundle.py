@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.bundle")
 
@@ -49,7 +49,9 @@ class bundles:
 
     @time_method
     def import_to(self, dspace, metadatas, items):
-        _logger.info(f"Importing bundles [{len(self)}]")
+        expected = len(self)
+        log_key = "bundles"
+        log_before_import(log_key, expected)
 
         for item_id, bundle_arr in progress_bar(self._itemid2bundle.items()):
             for bundle_id in bundle_arr:
@@ -70,7 +72,7 @@ class bundles:
                 except Exception as e:
                     _logger.error(f'put_bundle: [{item_id}] failed [{str(e)}]')
 
-        _logger.info(f"Bundles [{self.imported}] imported")
+        log_after_import(log_key, expected, self.imported)
 
     # =============
 

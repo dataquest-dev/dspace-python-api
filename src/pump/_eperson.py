@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.eperson")
 
@@ -65,17 +65,19 @@ class epersons:
 
     @time_method
     def import_to(self, env, dspace, metadatas):
-        """
-        """
-        _logger.info(f"Importing eperson [{len(self._epersons)}]")
+        expected = len(self)
+        log_key = "eperson"
+        log_before_import(log_key, expected)
 
         ignore_eids = env.get("ignore", {}).get("epersons", [])
+        ignored = 0
 
         for e in progress_bar(self._epersons):
             e_id = e['eperson_id']
 
             if e_id in ignore_eids:
                 _logger.debug(f"Skipping eperson [{e_id}]")
+                ignored += 1
                 continue
 
             data = {
@@ -105,7 +107,8 @@ class epersons:
             except Exception as e:
                 _logger.error(f'put_eperson: [{e_id}] failed [{str(e)}]')
 
-        _logger.info(f"Eperson [{self.imported}] imported!")
+        log_after_import(f"{log_key} ignored:[{ignored}]",
+                         expected, self.imported + ignored)
 
     # =============
 

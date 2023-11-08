@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, IMPORT_LIMIT, serialize, deserialize
+from ._utils import read_json, time_method, IMPORT_LIMIT, serialize, deserialize, log_before_import, log_after_import
 from ._item import items
 
 _logger = logging.getLogger("pump.handle")
@@ -50,14 +50,20 @@ class handles:
     def import_to(self, dspace):
         # external
         arr = self._handles.get(None, {}).get(None, [])[:IMPORT_LIMIT]
+        expected = len(arr)
+        log_key = "external handles"
+        log_before_import(log_key, expected)
         cnt = dspace.put_handles(arr)
-        _logger.info(f"Imported [{cnt}] external handles out of [{len(arr)}]")
+        log_after_import(log_key, expected, cnt)
         self._imported += cnt
 
         # no object
         arr = self._handles[items.TYPE].get(None, [])[:IMPORT_LIMIT]
+        expected = len(arr)
+        log_key = "handles"
+        log_before_import(log_key, expected)
         cnt = dspace.clarin_put_handles(arr)
-        _logger.info(f"Imported [{cnt}] handles out of [{len(arr)}]")
+        log_after_import(log_key, expected, cnt)
         self._imported += cnt
 
     # =============

@@ -1,7 +1,7 @@
 import logging
 import re
 from ._group import groups
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.collection")
 
@@ -72,7 +72,10 @@ class collections:
 
     @time_method
     def import_to(self, dspace, handles, metadatas, coms):
-        _logger.info(f"Importing collections [{len(self)}]")
+        expected = len(self)
+        log_key = "collections"
+        log_before_import(log_key, expected)
+
         coll2com = {x['collection_id']: x['community_id'] for x in self._com2col}
 
         for col in progress_bar(self._col):
@@ -144,7 +147,7 @@ class collections:
                     _logger.error(
                         f'put_collection_item_read_group: [{col_id}] failed [{str(e)}]')
 
-        _logger.info(f"Collections [{self.imported_cols}] imported!")
+        log_after_import(log_key, expected, self.imported_cols)
 
     # =============
 

@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.groups")
 
@@ -85,7 +85,10 @@ class groups:
             Import data into database.
             Mapped tables: epersongroup
         """
-        _logger.info(f"Importing epersons [{len(self._eperson)}]")
+        expected = len(self._eperson)
+        log_key = "epersons"
+        log_before_import(log_key, expected)
+
         grps = []
 
         for eg in progress_bar(self._eperson):
@@ -122,15 +125,17 @@ class groups:
         # sql_del = "delete from epersongroup where name='" + "' or name='".join(grps) + "' ;"
         # _logger.info(sql_del)
 
-        _logger.info(
-            f'Eperson groups [{self.imported_eperson}] imported [known existing:{self._imported["default_groups"]}]!')
+        log_after_import(f'{log_key} [known existing:{self._imported["default_groups"]}]',
+                         expected, self.imported_eperson + self._imported["default_groups"])
 
     def _import_group2group(self, dspace):
         """
             Import data into database.
             Mapped tables: group2group
         """
-        _logger.info(f"Importing epersons g2g [{len(self._g2g)}]")
+        expected = len(self._g2g)
+        log_key = "epersons g2g"
+        log_before_import(log_key, expected)
 
         for g2g in progress_bar(self._g2g):
             parent = self.uuid(g2g['parent_id'])
@@ -145,7 +150,7 @@ class groups:
             except Exception as e:
                 _logger.error(f'put_group2group: [{parent}][{child}] failed [{str(e)}]')
 
-        _logger.info(f"Eperson group2group [{self.imported_g2g}] imported!")
+        log_after_import(log_key, expected, self.imported_g2g)
 
     # =============
 

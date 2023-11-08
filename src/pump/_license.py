@@ -1,6 +1,6 @@
 import os
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.license")
 
@@ -50,7 +50,9 @@ class licenses:
         """
             Mapped tables: license_label
         """
-        _logger.info(f"Importing license labels [{len(self._labels)}]")
+        expected = len(self._labels)
+        log_key = "license labels"
+        log_before_import(log_key, expected)
 
         no_icon_for_labels = env.get("ignore", {}).get("missing-icons", [])
 
@@ -90,11 +92,13 @@ class licenses:
             self._license2label.setdefault(lic_id, []).append(
                 self._created_labels[str(lab_id)])
 
-        _logger.info(f"License labels [{self.imported_labels}] imported!")
+        log_after_import(log_key, expected, self.imported_labels)
 
     @time_method
     def _import_license_defs(self, env, dspace, epersons):
-        _logger.info(f"Importing license defs [{len(self._licenses)}]")
+        expected = len(self._licenses)
+        log_key = "license defs"
+        log_before_import(log_key, expected)
 
         # import license_definition
         for lic in progress_bar(self._licenses):
@@ -119,7 +123,7 @@ class licenses:
             except Exception as e:
                 _logger.error(f'XXX: [{lic_id}] failed [{str(e)}]')
 
-        _logger.info(f"Licenses [{self.imported_licenses}] imported!")
+        log_after_import(log_key, expected, self.imported_licenses)
 
     # =============
 

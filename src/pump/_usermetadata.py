@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.usermetadata")
 
@@ -57,7 +57,9 @@ class usermetadatas:
 
     @time_method
     def import_to(self, dspace, bitstreams, userregistrations):
-        _logger.info(f"Importing usermetadata [{len(self._umeta_transid2ums)}]!")
+        expected = len(self._umeta_transid2ums)
+        log_key = "usermetadata"
+        log_before_import(log_key, expected)
 
         # Go through dict and import user_metadata
         for t_id, um_arr in progress_bar(self._umeta_transid2ums.items()):
@@ -88,7 +90,7 @@ class usermetadatas:
             except Exception as e:
                 _logger.error(f'put_usermetadata: [{t_id}] failed [{str(e)}]')
 
-        _logger.info(f"Usermetadata [{self.imported}] imported!")
+        log_after_import(log_key, expected, self.imported)
 
     # =============
 

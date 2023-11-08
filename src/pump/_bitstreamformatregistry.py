@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.bitstreamformatregistry")
 
@@ -47,7 +47,9 @@ class bitstreamformatregistry:
         """
             Mapped tables: bitstreamformatregistry
         """
-        _logger.info(f"Importing bitstreamformatregistry [{len(self)}]")
+        expected = len(self)
+        log_key = "bitstreamformatregistry"
+        log_before_import(log_key, expected)
 
         existing_bfr2id = {}
         bfr_js = dspace.fetch_bitstreamregistry()
@@ -96,8 +98,8 @@ class bitstreamformatregistry:
 
             self._id2uuid[str(bf_id)] = ext_id
 
-        _logger.info(
-            f"Bitstreamformatregistry [{self.imported}] imported, [existed:{self.imported_existed}]")
+        log_after_import(f"{log_key} [existed:{self.imported_existed}]",
+                         expected, self.imported + self.imported_existed)
 
     # =============
 

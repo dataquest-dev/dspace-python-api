@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.tasklistitem")
 
@@ -30,7 +30,10 @@ class tasklistitems:
 
     @time_method
     def import_to(self, dspace, epersons, items):
-        _logger.info(f"Importing tasks [{len(self)}]")
+        expected = len(self)
+        log_key = "tasks"
+        log_before_import(log_key, expected)
+
         for task in progress_bar(self._tasks):
             try:
                 params = {
@@ -42,7 +45,7 @@ class tasklistitems:
             except Exception as e:
                 _logger.error(f'put_tasklistitem: [{task}] failed [{str(e)}]')
 
-        _logger.info(f"Tasklistitems [{self.imported}] imported")
+        log_after_import(log_key, expected, self.imported)
 
     # =============
 

@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.metadata")
 
@@ -154,7 +154,9 @@ class metadatas:
             Import data into database.
             Mapped tables: metadataschemaregistry
         """
-        _logger.info(f"Importing metadata schemas [{len(self._schemas)}]")
+        expected = len(self._schemas)
+        log_key = "metadata schemas"
+        log_before_import(log_key, expected)
 
         # get all existing data from database table
         existed_schemas = dspace.fetch_metadata_schemas() or []
@@ -179,23 +181,25 @@ class metadatas:
                 try:
                     resp = dspace.put_metadata_schema(data)
                     schema_id = resp['id']
+                    self._imported["schema_imported"] += 1
                 except Exception as e:
                     _logger.error(
                         f'put_metadata_schema [{meta_id}] failed. Exception: {str(e)}')
                     continue
 
             self._schemas_id2id[str(meta_id)] = schema_id
-            self._imported["schema_imported"] += 1
 
-        _logger.info(
-            f"MetadataSchemaRegistry [imported:{self.imported_schemas}][existed:{self.existed_schemas}]")
+        log_after_import(f'{log_key} [existed:{self.existed_schemas}]',
+                         expected, self.imported_schemas + self.existed_schemas)
 
     def _import_fields(self, dspace):
         """
             Import data into database.
             Mapped tables: metadatafieldregistry
         """
-        _logger.info(f"Importing metadata fields [{len(self._fields)}]")
+        expected = len(self._fields)
+        log_key = "metadata fields"
+        log_before_import(log_key, expected)
 
         existed_fields = dspace.fetch_metadata_fields()
 
@@ -233,16 +237,16 @@ class metadatas:
                 try:
                     resp = dspace.put_metadata_field(data, params)
                     ext_field_id = resp['id']
+                    self._imported["field_imported"] += 1
                 except Exception as e:
                     _logger.error(
                         f'put_metadata_field [{str(field_id)}] failed. Exception: {str(e)}')
                     continue
 
             self._fields_id2uuid[str(field_id)] = ext_field_id
-            self._imported["field_imported"] += 1
 
-        _logger.info(
-            f"MetadataSchemaRegistry [imported:{self.imported_fields}][existing:{self.existed_fields}]")
+        log_after_import(f'{log_key} [existing:{self.existed_fields}]',
+                         expected, self.imported_fields + self.existed_fields)
 
     def _get_key_v1(self, val):
         """

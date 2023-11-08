@@ -108,3 +108,13 @@ def progress_bar(arr):
 
     mininterval = 5 if len(arr) < 500 else 10
     return tqdm(arr, mininterval=mininterval, maxinterval=2 * mininterval)
+
+
+def log_before_import(msg: str, expected: int):
+    _logger.info("=====")
+    _logger.info(f"Importing   [{expected:> 4d}] {msg}")
+
+
+def log_after_import(msg: str, expected: int, imported: int):
+    prefix = "OK " if expected == imported else "!!! WARN !!! "
+    _logger.info(f"{prefix}Imported [{imported: >4d}] {msg}")

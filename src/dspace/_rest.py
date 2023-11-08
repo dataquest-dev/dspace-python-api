@@ -86,14 +86,12 @@ class rest:
             Mapped table: handles
         """
         url = 'clarin/import/handle'
-        _logger.info(f"Importing {len(handle_arr)} handles using [{url}]")
         arr = [{'handle': h['handle'], 'resourceTypeID': h['resource_type_id']}
                for h in handle_arr]
         return self._put(url, arr)
 
     def put_handles(self, handle_arr: list):
         url = 'core/handles'
-        _logger.info(f"Importing {len(handle_arr)} handles using [{url}]")
         arr = [{'handle': h['handle'], 'url': h['url']} for h in handle_arr]
         return self._put(url, arr)
 

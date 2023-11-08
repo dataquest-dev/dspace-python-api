@@ -1,6 +1,6 @@
 import datetime
 import logging
-from ._utils import read_json, serialize, deserialize, time_method, progress_bar
+from ._utils import read_json, serialize, deserialize, time_method, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.item")
 
@@ -168,7 +168,9 @@ class items:
         return True
 
     def _ws_import_to(self, dspace, handles, metadatas, epersons, collections):
-        _logger.info(f"Importing workspaceitems [{len(self._ws_items)}]!")
+        expected = len(self._ws_items)
+        log_key = "workspaceitems"
+        log_before_import(log_key, expected)
 
         for ws in progress_bar(self._ws_items):
             item = self.item(ws['item_id'])
@@ -181,10 +183,12 @@ class items:
             if item_id in item:
                 del item[item_id]
 
-        _logger.info(f"Workspaceitem [{self.imported_ws}] imported!")
+        log_after_import(log_key, expected, self.imported_ws)
 
     def _wf_import_to(self, dspace, handles, metadatas, epersons, collections):
-        _logger.info(f"Importing workflowitems [{len(self._wf_items)}]!")
+        expected = len(self._wf_items)
+        log_key = "workflowitems"
+        log_before_import(log_key, expected)
 
         # create workflowitem
         # workflowitem is created from workspaceitem
@@ -210,10 +214,13 @@ class items:
             if wf_id in item:
                 del item[wf_id]
 
-        _logger.info(f"Workflow [{self.imported_wf}] imported!")
+        log_after_import(log_key, expected, self.imported_wf)
 
     def _item_import_to(self, dspace, handles, metadatas, epersons, collections):
-        _logger.info(f"Importing items [{len(self._items)}]!")
+        expected = len(self._items)
+        log_key = "items"
+        log_before_import(log_key, expected)
+
         without_col = 0
 
         ws_items = 0
@@ -268,8 +275,8 @@ class items:
             except Exception as e:
                 _logger.error(f'put_item: [{i_id}] failed [{str(e)}]')
 
-        _logger.info(
-            f"Items [{self.imported}] imported, no owning col:[{without_col}], ws items:[{ws_items}] wf items:[{wf_items}]!")
+        log_after_import(f'{log_key} no owning col:[{without_col}], ws items:[{ws_items}] wf items:[{wf_items}]',
+                         expected, self.imported + without_col + ws_items + wf_items)
 
     def _itemcol_import_to(self, dspace, handles, metadatas, epersons, collections):
         # Find items which are mapped in more collections and store them into dictionary in this way
@@ -285,7 +292,9 @@ class items:
             col_uuid = collections.uuid(col['collection_id'])
             self._col_id2uuid.setdefault(item_uuid, []).append(col_uuid)
 
-        _logger.info(f"Importing items coll [{len(self._col_id2uuid)}]!")
+        expected = len(self._col_id2uuid)
+        log_key = "items coll"
+        log_before_import(log_key, expected)
 
         # Call Vanilla REST endpoint which add relation between Item and Collection into the collection2item table
         for item_uuid, cols in progress_bar(self._col_id2uuid.items()):
@@ -298,7 +307,7 @@ class items:
             except Exception as e:
                 _logger.error(f'put_item_to_col: [{item_uuid}] failed [{str(e)}]')
 
-        _logger.info(f"Items added to collections [{self.imported_cols}] imported!")
+        log_after_import(log_key, expected, self.imported_cols)
 
     # =============
 
@@ -448,7 +457,7 @@ SELECT setval('versionhistory_seq', {versionhistory_new_id})
                 cur_item = self.item(cur_item_id)
                 if cur_item['withdrawn']:
                     # The item is withdrawn and stored in another repository
-                    _logger.info(f'Item [{cur_item_version}] is withdrawn')
+                    _logger.debug(f'Item [{cur_item_version}] is withdrawn')
                     self._versions["withdrawn"].append(cur_item_version)
                 else:
                     _logger.error(

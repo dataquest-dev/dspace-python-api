@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.resourcepolicy")
 
@@ -53,7 +53,9 @@ class resourcepolicies:
 
     @time_method
     def import_to(self, env, dspace, repo):
-        _logger.info(f"Importing resourcepolicies [{len(self)}]")
+        expected = len(self)
+        log_key = "resourcepolicies"
+        log_before_import(log_key, expected)
 
         uuder = uuider(repo)
         dspace_actions = env["dspace"]["actions"]
@@ -124,7 +126,7 @@ class resourcepolicies:
                           f"because neither eperson nor group is defined")
             failed += 1
 
-        _logger.info(f"Resourcepolicy [{self.imported}] imported!")
+        log_after_import(log_key, expected, self.imported)
 
     # =============
 

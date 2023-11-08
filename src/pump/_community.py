@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize
+from ._utils import read_json, time_method, serialize, deserialize, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.community")
 
@@ -52,11 +52,13 @@ class communities:
             Import data into database.
             Mapped tables: community, community2community, metadatavalue, handle
         """
-        _logger.info(f"Importing communities [{len(self)}]")
-
         if len(self) == 0:
             _logger.info("Community JSON is empty.")
             return
+
+        expected = len(self)
+        log_key = "communities"
+        log_before_import(log_key, expected)
 
         parents = {}
         childs = {}
@@ -150,7 +152,7 @@ class communities:
             if i == len(coms):
                 i = 0
 
-        _logger.info(f"Communities [{self.imported_coms}] imported!")
+        log_after_import(log_key, expected, self.imported_coms)
 
     # =============
 

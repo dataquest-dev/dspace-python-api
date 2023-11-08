@@ -113,7 +113,7 @@ class db:
         last_record_id = self.fetch_one(sql)
 
         if not last_record_id:
-            _logger.info("No records in the table.")
+            _logger.info(f"No records in [{table_name}] table.")
             # Default value - the table is empty
             return 1
 

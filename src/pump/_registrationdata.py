@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.registrationdata")
 
@@ -30,7 +30,9 @@ class registrationdatas:
 
     @time_method
     def import_to(self, dspace):
-        _logger.info(f"Importing registrationdata [{len(self)}]")
+        expected = len(self)
+        log_key = "registrationdata"
+        log_before_import(log_key, expected)
 
         for rd in progress_bar(self._rd):
             email = rd['email']
@@ -47,8 +49,8 @@ class registrationdatas:
                 _logger.error(
                     f'put_registrationdata [{rd["email"]}]: failed. Exception: [{str(e)}]')
 
-        _logger.info(
-            f'Registrationdata [imported:{self.imported}], missing_email:[{self._imported["missing_email"]}]')
+        log_after_import(f'{log_key} missing_email:[{self._imported["missing_email"]}]',
+                         expected, self.imported + self._imported["missing_email"])
 
     # =============
 

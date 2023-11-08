@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.bitstream")
 
@@ -75,7 +75,11 @@ class bitstreams:
             _logger.info("There are no logos for collections.")
             return
 
-        for key, value in collections.logos.items():
+        expected = len(collections.logos.items())
+        log_key = "collection logos"
+        log_before_import(log_key, expected)
+
+        for key, value in progress_bar(collections.logos.items()):
             col_uuid = collections.uuid(key)
             bs_uuid = self.uuid(value)
             if col_uuid is None or bs_uuid is None:
@@ -91,7 +95,7 @@ class bitstreams:
             except Exception as e:
                 _logger.error(f'put_col_logo [{col_uuid}]: failed. Exception: [{str(e)}]')
 
-        _logger.info(f"Col logos [{self.imported_col_logos}] imported!")
+        log_after_import(log_key, expected, self.imported_col_logos)
 
     def _logo2com_import_to(self, dspace, communities):
         """
@@ -102,7 +106,11 @@ class bitstreams:
             _logger.info("There are no logos for communities.")
             return
 
-        for key, value in communities.logos.items():
+        expected = len(communities.logos.items())
+        log_key = "communities logos"
+        log_before_import(log_key, expected)
+
+        for key, value in progress_bar(communities.logos.items()):
             com_uuid = communities.uuid(key)
             bs_uuid = self.uuid(value)
             if com_uuid is None or bs_uuid is None:
@@ -118,10 +126,12 @@ class bitstreams:
             except Exception as e:
                 _logger.error(f'put_com_logo [{com_uuid}]: failed. Exception: [{str(e)}]')
 
-        _logger.info(f"Com logos [{self.imported_com_logos}] imported!")
+        log_after_import(log_key, expected, self.imported_com_logos)
 
     def _bitstream_import_to(self, env, dspace, metadatas, bitstreamformatregistry, bundles):
-        _logger.info(f"Importing bitstreams [{len(self)}]")
+        expected = len(self)
+        log_key = "bitstreams"
+        log_before_import(log_key, expected)
 
         for i, b in enumerate(progress_bar(self._bs)):
             b_id = b['bitstream_id']
@@ -201,7 +211,7 @@ class bitstreams:
         except Exception as e:
             _logger.error(f'add_checksums failed: [{str(e)}]')
 
-        _logger.info(f"Bitstreams [{self.imported}] imported")
+        log_after_import(log_key, expected, self.imported)
 
     # =============
 

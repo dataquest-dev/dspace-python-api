@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.userregistration")
 
@@ -34,7 +34,9 @@ class userregistrations:
             Import data into database.
             Mapped tables: user_registration
         """
-        _logger.info(f"Importing userregistration [{len(self)}]!")
+        expected = len(self)
+        log_key = "userregistration"
+        log_before_import(log_key, expected)
 
         for ur in progress_bar(self._ur):
             data = {
@@ -53,7 +55,7 @@ class userregistrations:
             except Exception as e:
                 _logger.error(f'put_userregistration: [{e_id}] failed [{str(e)}]')
 
-        _logger.info(f"Userregistration [{self.imported}] imported!")
+        log_after_import(log_key, expected, self.imported)
 
     # =============
 
