@@ -292,12 +292,13 @@ class items:
             col_uuid = collections.uuid(col['collection_id'])
             self._col_id2uuid.setdefault(item_uuid, []).append(col_uuid)
 
-        expected = len(self._col_id2uuid)
+        to_import = [x for x in self._col_id2uuid.items() if len(x[1]) > 1]
+        expected = len(to_import)
         log_key = "items coll"
         log_before_import(log_key, expected)
 
         # Call Vanilla REST endpoint which add relation between Item and Collection into the collection2item table
-        for item_uuid, cols in progress_bar(self._col_id2uuid.items()):
+        for item_uuid, cols in progress_bar(to_import):
             if len(cols) < 2:
                 continue
             try:
