@@ -14,6 +14,7 @@ class registrationdatas:
         self._rd = read_json(col_rd_str)
         self._imported = {
             "rd": 0,
+            "missing_email": 0,
         }
 
         if len(self._rd) == 0:
@@ -29,9 +30,15 @@ class registrationdatas:
 
     @time_method
     def import_to(self, dspace):
-        _logger.info(f"Importing communities [{len(self)}]")
+        _logger.info(f"Importing registrationdata [{len(self)}]")
+
         for rd in progress_bar(self._rd):
-            data = {'email': rd['email']}
+            email = rd['email']
+            if email == '':
+                _logger.debug(f"Registration data [{rd}] ignored because of empty email.")
+                self._imported["missing_email"] += 1
+                continue
+            data = {'email': email}
             params = {'accountRequestType': 'register'}
             try:
                 resp = dspace.put_registrationdata(params, data)
@@ -40,7 +47,8 @@ class registrationdatas:
                 _logger.error(
                     f'put_registrationdata [{rd["email"]}]: failed. Exception: [{str(e)}]')
 
-        _logger.info(f"Registrationdata [{self.imported}] imported")
+        _logger.info(
+            f'Registrationdata [imported:{self.imported}], missing_email:[{self._imported["missing_email"]}]')
 
     # =============
 

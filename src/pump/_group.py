@@ -17,6 +17,7 @@ class groups:
             "eperson": 0,
             "group": 0,
             "g2g": 0,
+            "default_groups": 0,
         }
 
         # created during import
@@ -93,6 +94,7 @@ class groups:
             # group Administrator and Anonymous already exist
             # group is created with dspace object too
             if str(g_id) in (groups.DEF_GID_ADMIN, groups.DEF_GID_ANON):
+                self._imported["default_groups"] += 1
                 continue
             if self.uuid(g_id) is not None:
                 continue
@@ -120,7 +122,8 @@ class groups:
         # sql_del = "delete from epersongroup where name='" + "' or name='".join(grps) + "' ;"
         # _logger.info(sql_del)
 
-        _logger.info(f"Eperson groups [{self.imported_eperson}] imported!")
+        _logger.info(
+            f'Eperson groups [{self.imported_eperson}] imported [known existing:{self._imported["default_groups"]}]!')
 
     def _import_group2group(self, dspace):
         """

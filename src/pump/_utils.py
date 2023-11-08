@@ -38,7 +38,8 @@ def time_method(func):
         start = time_fnc()
         res = func(self, *args, **kw)
         took = time_fnc() - start
-        _logger.info(f"Method [{func.__name__}] took [{round(took, 2)}] seconds.")
+        if took > 10.:
+            _logger.info(f"Method [{func.__name__}] took [{round(took, 2)}] seconds.")
         return res
 
     return _enclose

@@ -149,7 +149,6 @@ class metadatas:
         # compose the `local.sponsor` sequence in the right way
         return sep.join([p_type, p_code, org, p_name, eu_id])
 
-    @time_method
     def _import_schema(self, dspace):
         """
             Import data into database.
@@ -189,7 +188,6 @@ class metadatas:
         _logger.info(
             f"MetadataSchemaRegistry [imported:{self.imported_schemas}][existed:{self.existed_schemas}]")
 
-    @time_method
     def _import_fields(self, dspace):
         """
             Import data into database.

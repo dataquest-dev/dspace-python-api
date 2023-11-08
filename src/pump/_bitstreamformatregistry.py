@@ -97,7 +97,7 @@ class bitstreamformatregistry:
             self._imported["reg"] += 1
 
         _logger.info(
-            f"Bitstream format registry [{self.imported}] imported, already_exists [{self.imported_existed}]!")
+            f"Bitstreamformatregistry [{self.imported}] imported, [existed:{self.imported_existed}]")
 
     # =============
 

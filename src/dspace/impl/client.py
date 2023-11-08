@@ -205,7 +205,7 @@ class DSpaceClient:
                     logging.error(
                         'API Post: Already retried... something must be wrong')
                 else:
-                    logging.info("API Post: Retrying request with updated CSRF token")
+                    logging.debug("API Post: Retrying request with updated CSRF token")
                     return self.api_post(url, params=params, data=data, retry=True)
         elif r.status_code == 401:
             r_json = r.json()
@@ -216,7 +216,7 @@ class DSpaceClient:
                         'API Post: Already retried... something must be wrong')
                     self.exception401Counter = 0
                 else:
-                    logging.info("API Post: Retrying request with updated CSRF token")
+                    logging.debug("API Post: Retrying request with updated CSRF token")
                     # try to authenticate
                     self.authenticate()
                     # Try to authenticate and repeat the request 3 times -
@@ -263,7 +263,7 @@ class DSpaceClient:
                 if retry:
                     logging.error('Already retried... something must be wrong')
                 else:
-                    logging.info("Retrying request with updated CSRF token")
+                    logging.debug("Retrying request with updated CSRF token")
                     return self.api_put(url, params=params, json_p=json_p, retry=True)
 
         return r
@@ -298,7 +298,7 @@ class DSpaceClient:
                 if retry:
                     logging.error('Already retried... something must be wrong')
                 else:
-                    logging.info("Retrying request with updated CSRF token")
+                    logging.debug("Retrying request with updated CSRF token")
                     return self.api_delete(url, params=params, retry=True)
 
         return r
@@ -365,7 +365,7 @@ class DSpaceClient:
                 if retry:
                     logging.error('Already retried... something must be wrong')
                 else:
-                    logging.info("Retrying request with updated CSRF token")
+                    logging.debug("Retrying request with updated CSRF token")
                     return self.api_patch(url, operation, path, value, True)
         elif r.status_code == 200:
             # 200 Success
@@ -688,7 +688,7 @@ class DSpaceClient:
                 if retry:
                     logging.warning('Already retried... something must be wrong')
                 else:
-                    logging.error("Retrying request with updated CSRF token")
+                    logging.debug("Retrying request with updated CSRF token")
                     return self.create_bitstream(bundle, name, path, mime, metadata,
                                                  True)
         check_response(r, "creating bitstream")
