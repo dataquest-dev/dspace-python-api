@@ -36,7 +36,7 @@ if __name__ == "__main__":
     parser.add_argument('--user', help='database user', type=str)
     parser.add_argument('--password', help='database password', type=str)
     parser.add_argument('--output', help='output dir', type=str,
-                        default=os.path.join(_this_dir, "../input/data-jsons"))
+                        default=os.path.join(_this_dir, "../input/data"))
     args = parser.parse_args()
 
     if args.user is None:
