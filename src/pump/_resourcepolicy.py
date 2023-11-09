@@ -61,14 +61,13 @@ class resourcepolicies:
         dspace_actions = env["dspace"]["actions"]
         failed = 0
 
-        def_read = 0
-
         for res_policy in progress_bar(self._respol):
             res_id = res_policy['resource_id']
             res_type_id = res_policy['resource_type_id']
             res_uuid = uuder.get(res_type_id, res_id)
             if res_uuid is None:
-                _logger.critical(f"Cannot find uuid for [{res_type_id}] [{res_id}]")
+                _logger.critical(
+                    f"Cannot find uuid for [{res_type_id}] [{res_id}] [{str(res_policy)}]")
                 continue
             params = {}
             if res_uuid is not None:
@@ -110,23 +109,26 @@ class resourcepolicies:
                 group_list1 = [repo.groups.uuid(eg_id)]
                 group_list2 = repo.collections.group_uuid(eg_id)
                 group_list = set(group_list1 + group_list2)
-                if len(group_list) > 1:
-                    def_read += 1
+                if len(group_list) == 0:
+                    continue
+                imported_groups = 0
                 for group in group_list:
                     params['group'] = group
                     try:
                         resp = dspace.put_resourcepolicy(params, data)
-                        self._imported["respol"] += 1
+                        imported_groups += 1
                     except Exception as e:
                         _logger.error(
                             f'put_resourcepolicy: [{res_policy["policy_id"]}] failed [{str(e)}]')
+                if imported_groups > 0:
+                    self._imported["respol"] += 1
                 continue
 
             _logger.error(f"Cannot import resource policy {res_policy['policy_id']} "
                           f"because neither eperson nor group is defined")
             failed += 1
 
-        log_after_import(log_key, expected, self.imported)
+        log_after_import(f"{log_key}, failed:[{failed}]", expected, self.imported)
 
     # =============
 
