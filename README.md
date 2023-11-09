@@ -36,6 +36,7 @@ because we use this endpoint for importing existing data.
 > - `psql -U postgres clarin-utilities < <UTILITIES_DUMP_FILE_PATH>`
 
 or use `scripts/start.local.dspace.db.bat`.
+NOTE: `start.local.dspace.db.bat` and `init.dspacedb5.sh` must have `LF` line separator.
 
 ***
 4. Recreate your local CLARIN-DSpace7.* database **NOTE: all data will be deleted**
