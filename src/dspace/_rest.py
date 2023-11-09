@@ -400,7 +400,10 @@ class rest:
                 if not r.ok:
                     raise Exception(r)
                 try:
-                    yield response_to_json(r)
+                    js = None
+                    if len(r.content or '') > 0:
+                        js = response_to_json(r)
+                    yield js
                 except Exception:
                     yield r
             except Exception as e:

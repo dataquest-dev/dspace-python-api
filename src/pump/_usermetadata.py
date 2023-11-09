@@ -87,6 +87,7 @@ class usermetadatas:
                     'userRegistrationId': userreg_id
                 }
                 resp = dspace.put_usermetadata(params, data)
+                self._imported['um'] += 1
             except Exception as e:
                 _logger.error(f'put_usermetadata: [{t_id}] failed [{str(e)}]')
 

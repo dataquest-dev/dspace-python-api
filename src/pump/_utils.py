@@ -112,7 +112,7 @@ def progress_bar(arr):
 
 def log_before_import(msg: str, expected: int):
     _logger.info("=====")
-    _logger.info(f"Importing   [{expected:> 4d}] {msg}")
+    _logger.info(f"Importing   [{expected: >4d}] {msg}")
 
 
 def log_after_import(msg: str, expected: int, imported: int):
