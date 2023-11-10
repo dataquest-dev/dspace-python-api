@@ -140,7 +140,7 @@ class communities:
                 if com['admin'] is not None:
                     try:
                         resp = dspace.put_community_admin_group(new_com_id['id'])
-                        self._groups[com['admin']] = [resp['id']]
+                        self._groups[str(com['admin'])] = [resp['id']]
                         self._imported["group"] += 1
                     except Exception as e:
                         _logger.error(
@@ -171,3 +171,6 @@ class communities:
         self._logos = data["logos"]
         self._groups = data["groups"]
         self._imported = data["imported"]
+
+    def get_groups(self):
+        return self._groups

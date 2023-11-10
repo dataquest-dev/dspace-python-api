@@ -163,16 +163,17 @@ class groups:
             g_id = g['eperson_group_id']
             e_id = g['eperson_id']
             try:
-                g_uuid = groups.uuid(g_id)
+                g_uuid_list = groups.uuid(g_id)
                 e_uuid = epersons.uuid(e_id)
-                if g_uuid is None:
-                    _logger.critical(f"Group UUID for [{g_id}] is None!")
-                    continue
-                if e_uuid is None:
-                    _logger.critical(f"Eperson UUID for [{e_id}] is None!")
-                    continue
-                dspace.put_egroup(g_uuid, e_uuid)
-                self._imported["group"] += 1
+                for g_uuid in g_uuid_list:
+                    if g_uuid is None:
+                        _logger.critical(f"Group UUID for [{g_id}] is None!")
+                        continue
+                    if e_uuid is None:
+                        _logger.critical(f"Eperson UUID for [{e_id}] is None!")
+                        continue
+                    dspace.put_egroup(g_uuid, e_uuid)
+                    self._imported["group"] += 1
             except Exception as e:
                 _logger.error(f'put_egroup: [{g_id}] failed [{str(e)}]')
 
