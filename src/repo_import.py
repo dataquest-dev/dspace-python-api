@@ -90,6 +90,13 @@ if __name__ == "__main__":
     _logger.info("Loading repo objects")
     repo = pump.repo(env, dspace_be)
 
+    _logger.info("New instance database status:")
+    repo.raw_db_7.status()
+    _logger.info("Reference database dspace status:")
+    repo.raw_db_dspace_5.status()
+    _logger.info("Reference database dspace-utilities status:")
+    repo.raw_db_utilities_5.status()
+
     _logger.info("Starting import")
 
     # import handles
@@ -256,3 +263,10 @@ if __name__ == "__main__":
     _logger.info(f"Took [{round(took, 2)}] seconds to import all data")
     _logger.info(
         f"Made [{dspace_be.get_cnt}] GET requests, [{dspace_be.post_cnt}] POST requests.")
+
+    _logger.info("New instance database status:")
+    repo.raw_db_7.status()
+    _logger.info("Reference database dspace status:")
+    repo.raw_db_dspace_5.status()
+    _logger.info("Reference database dspace-utilities status:")
+    repo.raw_db_utilities_5.status()

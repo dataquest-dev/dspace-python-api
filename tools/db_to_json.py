@@ -13,8 +13,7 @@ sys.path.insert(0, os.path.join(_this_dir, "../src/"))
 
 
 def get_data_as_json(db, out_dir: str):
-    table_names = db.fetch_all(
-        "SELECT table_name FROM information_schema.tables WHERE is_insertable_into = 'YES' AND table_schema = 'public'")
+    table_names = db.all_tables()
 
     os.makedirs(out_dir, exist_ok=True)
     _logger.info(f"Exporting data to {out_dir}")

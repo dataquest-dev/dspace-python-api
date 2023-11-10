@@ -119,3 +119,26 @@ class db:
 
         # Check if there is a result and extract the ID
         return last_record_id
+
+    def all_tables(self):
+        return self.fetch_all(
+            "SELECT table_name FROM information_schema.tables WHERE is_insertable_into = 'YES' AND table_schema = 'public'")
+
+    def status(self):
+        d = {}
+        tables = self.all_tables()
+        for table in tables:
+            name = table[0]
+            count = self.fetch_one(f"SELECT COUNT(*) FROM {name}")
+            d[name] = count
+        zero = ""
+        msg = ""
+        for name in sorted(d.keys()):
+            count = d[name]
+            if count == 0:
+                zero += f"{name},"
+            else:
+                msg += f"{name: >40}: {int(count): >8d}\n"
+
+        _logger.info(f"\n{msg}Empty tables:\n\t{zero}")
+        _logger.info(40 * "=")
