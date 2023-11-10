@@ -338,7 +338,7 @@ class rest:
         return list(self._iput(url, [data], [param]))[0]
 
     def put_wf_item(self, param: dict):
-        url = 'clarin/import/item'
+        url = 'clarin/import/workflowitem'
         _logger.debug(f"Importing [][{param}] using [{url}]")
         r = self.post(url, params=param, data=None)
         if not r.ok:
