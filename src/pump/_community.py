@@ -175,6 +175,3 @@ class communities:
         self._logos = data["logos"]
         self._groups = data["groups"]
         self._imported = data["imported"]
-
-    def get_groups(self):
-        return self._groups

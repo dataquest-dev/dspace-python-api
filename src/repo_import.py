@@ -159,7 +159,7 @@ if __name__ == "__main__":
         _logger.info(
             f"Resuming epersongroup [eperson:{repo.groups.imported_eperson}] [g2g:{repo.groups.imported_g2g}]")
     else:
-        repo.groups.import_to(dspace_be, repo.metadatas, repo.collections.groups_it2uuid,
+        repo.groups.import_to(dspace_be, repo.metadatas, repo.collections.groups_id2uuid,
                               repo.communities.imported_groups)
         repo.groups.serialize(cache_file)
 

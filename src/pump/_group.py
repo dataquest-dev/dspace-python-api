@@ -24,7 +24,7 @@ class groups:
         # created during import
 
         # all imported group
-        self._group_id2uuid = {}
+        self._id2uuid = {}
 
         if len(self._eperson) == 0:
             _logger.info(f"Empty input collections: [{eperson_file_str}].")
@@ -61,27 +61,27 @@ class groups:
         other_groups = []
         for group in res:
             if group['name'] == 'Anonymous':
-                self._group_id2uuid[groups.DEF_GID_ANON] = [group['id']]
+                self._id2uuid[groups.DEF_GID_ANON] = [group['id']]
                 continue
 
             if group['name'] == 'Administrator':
-                self._group_id2uuid[groups.DEF_GID_ADMIN] = [group['id']]
+                self._id2uuid[groups.DEF_GID_ADMIN] = [group['id']]
                 continue
 
             other_groups.append(group)
         _logger.info(
-            f"Loaded groups [{self._group_id2uuid}], other groups:[{len(other_groups)}]")
+            f"Loaded groups [{self._id2uuid}], other groups:[{len(other_groups)}]")
         return self
 
     def uuid(self, gid: int):
-        assert isinstance(list(self._group_id2uuid.keys())[0], str)
-        return self._group_id2uuid.get(str(gid), None)
+        assert isinstance(list(self._id2uuid.keys())[0], str)
+        return self._id2uuid.get(str(gid), None)
 
     @time_method
     def import_to(self, dspace, metadatas, coll_groups, comm_groups):
         # Do not import groups which are already imported
-        self._group_id2uuid.update(coll_groups)
-        self._group_id2uuid.update(comm_groups)
+        self._id2uuid.update(coll_groups)
+        self._id2uuid.update(comm_groups)
         self._import_eperson(dspace, metadatas)
         self._import_group2group(dspace)
 
@@ -104,7 +104,10 @@ class groups:
             if str(g_id) in (groups.DEF_GID_ADMIN, groups.DEF_GID_ANON):
                 self._imported["default_groups"] += 1
                 continue
-            if str(g_id) in (self._group_id2uuid.keys()):
+
+            g_uuid = self.uuid(g_id)
+            if g_uuid is not None:
+                # TODO(jm) what is this?
                 self._imported["coll_groups"] += 1
                 continue
 
@@ -123,7 +126,7 @@ class groups:
             try:
                 # continue
                 resp = dspace.put_eperson_group({}, data)
-                self._group_id2uuid[str(g_id)] = [resp['id']]
+                self._id2uuid[str(g_id)] = [resp['id']]
                 self._imported["eperson"] += 1
             except Exception as e:
                 _logger.error(f'put_eperson_group: [{g_id}] failed [{str(e)}]')
@@ -158,8 +161,8 @@ class groups:
                         # TODO Update statistics when the collection has more group relations.
                         self._imported["g2g"] += 1
                     except Exception as e:
-                        _logger.error(f'put_group2group: [{parent}][{child}] failed [{str(e)}]')
-
+                        _logger.error(
+                            f'put_group2group: [{parent}][{child}] failed [{str(e)}]')
 
         log_after_import(log_key, expected, self.imported_g2g)
 
@@ -168,7 +171,7 @@ class groups:
     def serialize(self, file_str: str):
         data = {
             "eperson": self._eperson,
-            "group_id2uuid": self._group_id2uuid,
+            "id2uuid": self._id2uuid,
             "imported": self._imported,
         }
         serialize(file_str, data)
@@ -176,5 +179,5 @@ class groups:
     def deserialize(self, file_str: str):
         data = deserialize(file_str)
         self._eperson = data["eperson"]
-        self._group_id2uuid = data["group_id2uuid"]
+        self._id2uuid = data["id2uuid"]
         self._imported = data["imported"]
