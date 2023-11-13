@@ -42,6 +42,10 @@ class communities:
     def imported_com2coms(self):
         return self._imported['com2com']
 
+    @property
+    def imported_groups(self):
+        return self._groups
+
     def uuid(self, com_id: int):
         assert isinstance(list(self._id2uuid.keys() or [""])[0], str)
         return self._id2uuid.get(str(com_id), None)
@@ -171,6 +175,3 @@ class communities:
         self._logos = data["logos"]
         self._groups = data["groups"]
         self._imported = data["imported"]
-
-    def get_groups(self):
-        return self._groups
