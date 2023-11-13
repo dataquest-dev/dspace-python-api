@@ -70,6 +70,10 @@ class collections:
     def imported_groups(self):
         return self._imported['group']
 
+    @property
+    def groups_id2uuid(self):
+        return self._groups_id2uuid
+
     @time_method
     def import_to(self, dspace, handles, metadatas, coms):
         expected = len(self)

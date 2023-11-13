@@ -31,3 +31,16 @@ Before running for the first time, requirements must be installed with following
 It is possible to run in Pycharm with configuration like so:
 
 ![image](https://user-images.githubusercontent.com/88670521/186934112-d0f828fd-a809-4ed8-bbfd-4457b734d8fd.png)
+
+
+# How to re-initialize dspace 7 database
+
+Recreate your local CLARIN-DSpace7.* database **NOTE: all data will be deleted**
+
+- Install again the database following the official tutorial steps: https://wiki.lyrasis.org/display/DSDOC7x/Installing+DSpace#InstallingDSpace-PostgreSQL11.x,12.xor13.x(withpgcryptoinstalled)
+- Or try to run these commands in the <PSQL_PATH>/bin:
+> - `createdb --username=postgres --owner=dspace --encoding=UNICODE dspace` // create database
+> - `psql --username=postgres dspace -c "CREATE EXTENSION pgcrypto;"` // Add pgcrypto extension
+> > If it throws warning that `-c` parameter was ignored, just write a `CREATE EXTENSION pgcrypto;` command in the database cmd.
+> > CREATE EXTENSION pgcrypto;
+![image](https://user-images.githubusercontent.com/90026355/228528044-f6ad178c-f525-4b15-b6cc-03d8d94c8ccc.png)

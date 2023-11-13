@@ -203,7 +203,7 @@ class items:
 
             # create workflowitem from created workspaceitem
             # TODO(verify)
-            params = {'id': str(self._id2uuid[str(wf_id)])}
+            params = {'id': str(self._ws_id2uuid[str(wf_id)])}
             try:
                 resp = dspace.put_wf_item(params)
                 self._wf_id2uuid[str(wf['workflow_id'])] = resp.headers['workflowitem_id']

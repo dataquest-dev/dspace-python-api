@@ -42,6 +42,10 @@ class communities:
     def imported_com2coms(self):
         return self._imported['com2com']
 
+    @property
+    def imported_groups(self):
+        return self._groups
+
     def uuid(self, com_id: int):
         assert isinstance(list(self._id2uuid.keys() or [""])[0], str)
         return self._id2uuid.get(str(com_id), None)
@@ -140,7 +144,7 @@ class communities:
                 if com['admin'] is not None:
                     try:
                         resp = dspace.put_community_admin_group(new_com_id['id'])
-                        self._groups[com['admin']] = [resp['id']]
+                        self._groups[str(com['admin'])] = [resp['id']]
                         self._imported["group"] += 1
                     except Exception as e:
                         _logger.error(
