@@ -172,3 +172,6 @@ class collections:
         self._logos = data["logos"]
         self._groups_id2uuid = data["groups_id2uuid"]
         self._imported = data["imported"]
+
+    def get_groups_it2uuid(self):
+        return self._groups_id2uuid
