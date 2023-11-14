@@ -43,6 +43,7 @@ class metadatas:
         self._imported = {
             "schema_imported": 0,
             "schema_existed": 0,
+            "schema_part_matching": 0,
             "field_imported": 0,
             "field_existed": 0,
         }
@@ -108,6 +109,10 @@ class metadatas:
     @property
     def existed_schemas(self):
         return self._imported['schema_existed']
+
+    @property
+    def existed_schemas(self):
+        return self._imported['schema_part_matching']
 
     @property
     def imported_fields(self):
@@ -196,7 +201,21 @@ class metadatas:
                 except Exception as e:
                     _logger.error(
                         f'put_metadata_schema [{meta_id}] failed. Exception: {str(e)}')
-                    continue
+                    existing = next((e for e in existed_schemas if e['prefix'] == schema['short_id']), None)
+                    if existing is not None:
+                        _logger.warning(
+                            f'Metadata_schema short_id {schema["short_id"]} '
+                            f'exists in database with different namespace: {existing["namespace"]}.')
+                    else:
+                        existing = next((e for e in existed_schemas if e['namespace'] == schema['namespace']), None)
+                        if existing is not None:
+                            _logger.warning(
+                                f'Metadata_schema namespace {schema["namespace"]} '
+                                f'exists in database with different short_id: {existing["short_id"]}.')
+                        else:
+                            continue
+                    schema_id = existing['id']
+                    self._imported["schema_part_matching"] += 1
 
             self._schemas_id2id[str(meta_id)] = schema_id
 
