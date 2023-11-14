@@ -10,6 +10,15 @@ class bundles:
         SQL:
     """
     TYPE = 1
+    validate_table = [
+        ["bundle", {
+        }],
+        ["bundle2bitstream", {
+        }],
+        ["checksum_results", {
+            "compare": ["result_description", "result_code"],
+        }],
+    ]
 
     def __init__(self, bundle_file_str: str, item2bundle_file_str: str):
         self._bundles = read_json(bundle_file_str)

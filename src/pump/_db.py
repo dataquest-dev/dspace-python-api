@@ -54,10 +54,13 @@ class db:
 
     # =============
 
-    def fetch_all(self, sql: str):
+    def fetch_all(self, sql: str, col_names: list = None):
         with self._conn as cursor:
             cursor.execute(sql)
-            return cursor.fetchall()
+            arr = cursor.fetchall()
+            if col_names is not None:
+                col_names += [x[0] for x in cursor.description]
+            return arr
 
     def fetch_one(self, sql: str):
         with self._conn as cursor:

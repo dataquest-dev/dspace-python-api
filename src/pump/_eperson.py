@@ -28,6 +28,22 @@ class epersons:
             delete from epersongroup2eperson ; delete from eperson where email NOT IN (SELECT email FROM eperson LIMIT 1) ;
             delete from group2groupcache ; delete from group2group ; delete from resourcepolicy ; delete from community2community ; delete from community ; delete from epersongroup where permanent=false;
     """
+    validate_table = [
+        ["eperson", {
+            # do not use compare because of email field (GDPR)
+            "compare": ["email", "netid"],
+        }],
+
+        ["eperson", {
+            # do not use compare because of email field (GDPR)
+            "sql": {
+                "5": "select epersongroup.eperson_group_id, eperson.email from epersongroup2eperson inner join epersongroup ON epersongroup2eperson.eperson_group_id=epersongroup.eperson_group_id inner join eperson ON epersongroup2eperson.eperson_id=eperson.eperson_id",
+                "7": "select epersongroup.uuid, eperson.email from epersongroup2eperson inner join epersongroup ON epersongroup2eperson.eperson_group_id=epersongroup.uuid inner join eperson ON epersongroup2eperson.eperson_id=eperson.uuid",
+                "compare": "email",
+            }
+        }],
+
+    ]
     TYPE = 7
 
     def __init__(self, eperson_file_str: str):

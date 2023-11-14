@@ -5,6 +5,12 @@ _logger = logging.getLogger("pump.userregistration")
 
 
 class userregistrations:
+    validate_table = [
+        # ["userregistration", {
+        #     # do not use compare because of email field (GDPR)
+        #     "compare": ["email", "netid"],
+        # }],
+    ]
 
     def __init__(self, ur_file_str: str):
         self._ur = read_json(ur_file_str)

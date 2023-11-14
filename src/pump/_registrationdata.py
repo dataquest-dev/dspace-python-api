@@ -9,6 +9,12 @@ class registrationdatas:
         SQL:
             delete from registrationdata ;
     """
+    validate_table = [
+        ["registrationdata", {
+            # do not use compare because of email field (GDPR)
+            "nonnull": ["email"],
+        }],
+    ]
 
     def __init__(self, col_rd_str: str):
         self._rd = read_json(col_rd_str)

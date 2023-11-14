@@ -11,6 +11,13 @@ class collections:
         SQL:
             delete from cwf_collectionrole ; delete from collection ;
     """
+    validate_table = [
+        ["collection", {
+            "nonnull": ["logo_bitstream_id"],
+        }],
+        ["collection2item", {
+        }],
+    ]
 
     TYPE = 3
 

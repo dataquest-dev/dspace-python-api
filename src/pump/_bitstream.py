@@ -10,8 +10,13 @@ class bitstreams:
         Mapped tables: bitstream, bundle2bitstream, metadata, most_recent_checksum
             and checksum_result
     """
-
     TYPE = 0
+    validate_table = [
+        ["bitstream", {
+            "compare": ["checksum", "internal_id", "deleted"],
+        }],
+
+    ]
 
     def __init__(self, bitstream_file_str: str, bundle2bitstream_file_str: str):
         self._bs = read_json(bitstream_file_str)

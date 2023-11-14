@@ -10,6 +10,11 @@ class handles:
         SQL:
             delete from handle ;
     """
+    validate_table = [
+        ["handle", {
+            "compare": ["handle", "resource_type_id"],
+        }],
+    ]
 
     def __init__(self, file_str: str):
         self._handles = {}

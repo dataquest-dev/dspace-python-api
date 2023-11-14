@@ -10,8 +10,21 @@ class items:
         SQL:
             delete from workspaceitem ;
     """
-
     TYPE = 2
+    validate_table = [
+        ["item", {
+            # do not use compare because of email field (GDPR)
+            "nonnull": ["in_archive", "withdrawn"],
+        }],
+        ["item2bundle", {
+            # do not use compare because of email field (GDPR)
+            "nonnull": ["bundle_id"],
+        }],
+        ["versionhistory", {
+        }],
+        ["workspaceitem", {
+        }],
+    ]
 
     def __init__(self,
                  item_file_str: str,

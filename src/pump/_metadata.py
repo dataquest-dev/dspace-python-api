@@ -9,6 +9,17 @@ class metadatas:
         SQL:
             delete from metadatavalue ; delete from metadatafieldregistry ; delete from metadataschemaregistry ;
     """
+    validate_table = [
+        ["metadataschemaregistry", {
+            "compare": ["namespace", "short_id"],
+        }],
+        ["metadatafieldregistry", {
+            "compare": ["element", "qualifier"],
+        }],
+        ["metadatavalue", {
+            "compare": ["text_value"],
+        }],
+    ]
 
     DC_RELATION_REPLACES_ID = 50
     DC_RELATION_ISREPLACEDBY_ID = 51
@@ -161,13 +172,13 @@ class metadatas:
         # get all existing data from database table
         existed_schemas = dspace.fetch_metadata_schemas() or []
 
-        def find_existing(short_id):
-            return next((e for e in existed_schemas if e['prefix'] == short_id), None)
+        def find_existing(short_id: str, ns: str):
+            return next((e for e in existed_schemas if e['prefix'] == short_id and e['namespace'] == ns), None)
 
         for schema in progress_bar(self._schemas):
             meta_id = schema['metadata_schema_id']
 
-            existing = find_existing(schema['short_id'])
+            existing = find_existing(schema['short_id'], schema['namespace'])
             if existing is not None:
                 _logger.debug(
                     f'Metadataschemaregistry prefix: {schema["short_id"]} already exists!')
@@ -201,7 +212,7 @@ class metadatas:
         log_key = "metadata fields"
         log_before_import(log_key, expected)
 
-        existed_fields = dspace.fetch_metadata_fields()
+        existed_fields = dspace.fetch_metadata_fields() or []
 
         def find_existing(field):
             schema_id = field['metadata_schema_id']
@@ -216,6 +227,7 @@ class metadatas:
                 return e
             return None
 
+        existing_arr = []
         for field in progress_bar(self._fields):
             field_id = field["metadata_field_id"]
             schema_id = field['metadata_schema_id']
@@ -225,6 +237,7 @@ class metadatas:
             existing = find_existing(field)
             if existing is not None:
                 _logger.debug(f'Metadatafield: {e}.{q} already exists!')
+                existing_arr.append(field)
                 ext_field_id = existing['id']
                 self._imported["field_existed"] += 1
             else:

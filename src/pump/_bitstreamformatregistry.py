@@ -9,6 +9,14 @@ class bitstreamformatregistry:
         SQL:
             delete from fileextension ; delete from bitstreamformatregistry ;
     """
+    validate_table = [
+        ["bitstreamformatregistry", {
+            "compare": ["mimetype", "short_description", "support_level"],
+        }],
+        ["fileextension", {
+            "compare": ["extension"],
+        }],
+    ]
 
     def __init__(self, bfr_file_str: str):
         self._reg = read_json(bfr_file_str)

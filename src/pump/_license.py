@@ -7,6 +7,33 @@ _logger = logging.getLogger("pump.license")
 
 class licenses:
 
+    validate_table = [
+        ["license_definition", {
+            "compare": ["name", "confirmation", "required_info"],
+            "db": "clarin-utilities",
+        }],
+        ["license_label", {
+            "compare": ["label", "title"],
+            "db": "clarin-utilities",
+        }],
+        ["license_label", {
+            "compare": ["label", "title"],
+            "db": "clarin-utilities",
+        }],
+        ["license_label_extended_mapping", {
+            "nonnull": ["license_id"],
+            "db": "clarin-utilities",
+        }],
+        ["license_resource_user_allowance", {
+            "nonnull": ["mapping_id"],
+            "db": "clarin-utilities",
+        }],
+        ["license_resource_mapping", {
+            "nonnull": ["license_id"],
+            "db": "clarin-utilities",
+        }],
+    ]
+
     def __init__(self,
                  license_labels_file_str: str,
                  license_defs_file_str: str,

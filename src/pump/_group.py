@@ -6,6 +6,21 @@ _logger = logging.getLogger("pump.groups")
 
 class groups:
 
+    validate_table = [
+        ["epersongroup", {
+            # do not use compare because of email field (GDPR)
+            "nonnull": ["eperson_group_id"],
+        }],
+        ["group2group", {
+            # do not use compare because of email field (GDPR)
+            "nonnull": ["parent_id", "child_id"],
+        }],
+        ["epersongroup2eperson", {
+            # do not use compare because of email field (GDPR)
+            "nonnull": ["eperson_group_id", "eperson_id"],
+        }],
+    ]
+
     TYPE = 6
     DEF_GID_ANON = "0"
     DEF_GID_ADMIN = "1"

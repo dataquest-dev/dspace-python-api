@@ -9,6 +9,14 @@ class communities:
         SQL:
             delete from community2community ; delete from community2collection ; delete from community ;
     """
+    validate_table = [
+        ["community", {
+        }],
+        ["community2collection", {
+        }],
+        ["community2community", {
+        }],
+    ]
 
     TYPE = 4
 
