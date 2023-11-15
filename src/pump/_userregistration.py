@@ -28,6 +28,7 @@ class userregistrations:
         return len(self._ur)
 
     def uuid(self, e_id: int):
+        assert isinstance(list(self._id2uuid.keys() or [""])[0], str)
         return self._id2uuid[str(e_id)]
 
     @property

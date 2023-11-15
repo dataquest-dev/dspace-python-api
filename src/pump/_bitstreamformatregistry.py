@@ -37,6 +37,7 @@ class bitstreamformatregistry:
         return len(self._reg)
 
     def uuid(self, f_id: int):
+        assert isinstance(list(self._id2uuid.keys() or [""])[0], str)
         return self._id2uuid.get(str(f_id), None)
 
     def mimetype(self, f_id: str):

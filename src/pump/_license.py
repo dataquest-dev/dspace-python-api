@@ -116,7 +116,7 @@ class licenses:
         for m in self._map:
             lic_id = m['license_id']
             lab_id = m['label_id']
-            self._license2label.setdefault(lic_id, []).append(
+            self._license2label.setdefault(str(lic_id), []).append(
                 self._created_labels[str(lab_id)])
 
         log_after_import(log_key, expected, self.imported_labels)

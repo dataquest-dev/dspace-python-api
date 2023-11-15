@@ -73,6 +73,7 @@ class items:
         return len(self._items)
 
     def uuid(self, eid: int):
+        assert isinstance(list(self._id2uuid.keys() or [""])[0], str)
         return self._id2uuid.get(str(eid), None)
 
     def wf_uuid(self, wfid: int):
@@ -134,7 +135,7 @@ class items:
             self._done.append("itemcol")
             self.serialize(cache_file)
 
-    def _import_item(self, dspace, generic_item_d, item, handles, metadatas, epersons, collections) -> bool:
+    def _import_item(self, dspace, generic_item_d, item, handles, metadatas, epersons, collections, wf=False) -> bool:
         i_id = item['item_id']
 
         data = {
@@ -150,6 +151,8 @@ class items:
         i_handle = handles.get(items.TYPE, i_id)
         if i_handle is not None:
             data['handle'] = i_handle
+        else:
+            _logger.info(f"Cannot find handle for item in ws/wf [{i_id}]")
 
         # the params are workspaceitem attributes
         params = {
@@ -191,10 +194,6 @@ class items:
                                     metadatas, epersons, collections)
             if ret:
                 self._imported["ws"] += 1
-            # ?
-            item_id = ws['item_id']
-            if item_id in item:
-                del item[item_id]
 
         log_after_import(log_key, expected, self.imported_ws)
 
@@ -210,22 +209,20 @@ class items:
             wf_id = wf['item_id']
             item = self.item(wf_id)
             ret = self._import_item(dspace, wf, item, handles,
-                                    metadatas, epersons, collections)
+                                    metadatas, epersons, collections, True)
             if not ret:
                 continue
 
             # create workflowitem from created workspaceitem
-            # TODO(verify)
             params = {'id': str(self._ws_id2uuid[str(wf_id)])}
+            # remove ws from dict because this ws will be removed from db
+            del self._ws_id2uuid[str(wf_id)]
             try:
                 resp = dspace.put_wf_item(params)
                 self._wf_id2uuid[str(wf['workflow_id'])] = resp.headers['workflowitem_id']
                 self._imported["wf"] += 1
             except Exception as e:
                 _logger.error(f'put_wf_item: [{wf_id}] failed [{str(e)}]')
-
-            if wf_id in item:
-                del item[wf_id]
 
         log_after_import(log_key, expected, self.imported_wf)
 
@@ -242,6 +239,15 @@ class items:
         # create other items
         for item in progress_bar(self._items):
             i_id = item['item_id']
+
+            # is it already imported in WS?
+            if str(i_id) in self._ws_id2uuid:
+                ws_items += 1
+                continue
+            if str(i_id) in self._wf_id2uuid:
+                wf_items += 1
+                continue
+
             data = {
                 'discoverable': item['discoverable'],
                 'inArchive': item['in_archive'],
@@ -254,16 +260,11 @@ class items:
                 data['metadata'] = i_meta
 
             i_handle = handles.get(items.TYPE, i_id)
-            if i_handle is not None:
-                data['handle'] = i_handle
+            if i_handle is None:
+                _logger.critical(f"Cannot find handle for item [{i_id}]")
+                continue
 
-            # is it already imported in WS?
-            if str(i_id) in self._ws_id2uuid:
-                ws_items += 1
-                continue
-            if str(i_id) in self._wf_id2uuid:
-                wf_items += 1
-                continue
+            data['handle'] = i_handle
 
             if item['owning_collection'] is None:
                 _logger.critical(f"Item without collection [{i_id}] is not valid!")

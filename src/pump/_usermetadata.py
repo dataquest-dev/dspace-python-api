@@ -49,6 +49,7 @@ class usermetadatas:
         return len(self._umeta)
 
     def uuid(self, b_id: int):
+        assert isinstance(list(self._id2uuid.keys() or [""])[0], str)
         return self._id2uuid[str(b_id)]
 
     @property

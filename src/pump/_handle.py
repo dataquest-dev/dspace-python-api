@@ -24,7 +24,7 @@ class handles:
         for h in js:
             res_type_id = h['resource_type_id']
             res_id = h['resource_id']
-            arr = self._handles.setdefault(res_type_id, {}).setdefault(res_id, [])
+            arr = self._handles.setdefault(str(res_type_id), {}).setdefault(str(res_id), [])
             arr.append(h)
 
     def __len__(self):
@@ -63,7 +63,7 @@ class handles:
         self._imported += cnt
 
         # no object
-        arr = self._handles[items.TYPE].get(None, [])[:IMPORT_LIMIT]
+        arr = self._handles[str(items.TYPE)].get(None, [])[:IMPORT_LIMIT]
         expected = len(arr)
         log_key = "handles"
         log_before_import(log_key, expected)

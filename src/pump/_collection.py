@@ -58,7 +58,7 @@ class collections:
         return len(self._col)
 
     def uuid(self, com_id: int):
-        # NOTE: we have string indices
+        assert isinstance(list(self._id2uuid.keys() or [""])[0], str)
         return self._id2uuid.get(str(com_id), None)
 
     def group_uuid(self, g_id: int):
@@ -97,6 +97,10 @@ class collections:
             data['metadata'] = meta_col
 
             handle_col = handles.get(collections.TYPE, col_id)
+            if handle_col is None:
+                _logger.critical(f"Cannot find handle for col [{col_id}]")
+                continue
+
             data['handle'] = handle_col
 
             # filter
@@ -115,7 +119,7 @@ class collections:
 
             # add to collection2logo, if collection has logo
             if col['logo_bitstream_id'] is not None:
-                self._logos[col_id] = col["logo_bitstream_id"]
+                self._logos[str(col_id)] = col["logo_bitstream_id"]
 
             # greate group
             # template_item_id, workflow_step_1, workflow_step_3, admin are not implemented,

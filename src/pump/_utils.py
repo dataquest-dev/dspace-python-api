@@ -81,6 +81,14 @@ def serialize(file_str: str, data, sorted=True):
     """
         Serialize data into json file.
     """
+    if isinstance(data, dict):
+        for v in data.values():
+            if isinstance(v, dict):
+                keys = list(v.keys())
+                if len(keys) > 0:
+                    if isinstance(keys[0], int):
+                        _logger.critical(f"Serializing dictionary with integer keys [{file_str}] !!!")
+
     os.makedirs(os.path.dirname(file_str), exist_ok=True)
     with open(file_str, encoding="utf-8", mode="w") as fout:
         json.dump(serial_d(data), fout, indent=None, sort_keys=sorted)

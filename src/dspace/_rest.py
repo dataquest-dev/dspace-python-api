@@ -343,7 +343,7 @@ class rest:
         r = self.post(url, params=param, data=None)
         if not r.ok:
             raise Exception(r)
-        return response_to_json(r)
+        return r
 
     def put_item(self, param: dict, data: dict):
         url = 'clarin/import/item'

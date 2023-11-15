@@ -114,9 +114,11 @@ class communities:
 
                 # resource_type_id for community is 4
                 handle_com = handles.get(communities.TYPE, com_id)
+                if handle_com is None:
+                    _logger.critical(f"Cannot find handle for com [{com_id}]")
+                    continue
 
-                if handle_com:
-                    data['handle'] = handle_com
+                data['handle'] = handle_com
 
                 metadata_com = metadata.value(communities.TYPE, com_id)
 
@@ -146,7 +148,7 @@ class communities:
 
                 # add to community2logo, if community has logo
                 if com['logo_bitstream_id'] is not None:
-                    self._logos[com_id] = com["logo_bitstream_id"]
+                    self._logos[str(com_id)] = com["logo_bitstream_id"]
 
                 # create admingroup
                 if com['admin'] is not None:
