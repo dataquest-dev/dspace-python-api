@@ -26,6 +26,7 @@ class bitstreamformatregistry:
         }
 
         self._id2uuid = {}
+        self._id2mimetype = {}
         self._unknown_format_id = None
 
         if len(self) == 0:
@@ -37,6 +38,9 @@ class bitstreamformatregistry:
 
     def uuid(self, f_id: int):
         return self._id2uuid.get(str(f_id), None)
+
+    def mimetype(self, f_id: str):
+        return self._id2mimetype.get(str(f_id), None)
 
     @property
     def imported(self):
@@ -105,6 +109,7 @@ class bitstreamformatregistry:
                     continue
 
             self._id2uuid[str(bf_id)] = ext_id
+            self._id2mimetype[str(bf_id)] = bf['mimetype']
 
         log_after_import(f"{log_key} [existed:{self.imported_existed}]",
                          expected, self.imported + self.imported_existed)

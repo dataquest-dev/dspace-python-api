@@ -171,14 +171,14 @@ class bitstreams:
                 _logger.info(f'Using unknown format for bitstream {b_id}')
                 b['bitstream_format_id'] = unknown_id
 
-            bformat_uuid = bitstreamformatregistry.uuid(b['bitstream_format_id'])
-            if bformat_uuid is None:
+            bformat_mimetype = bitstreamformatregistry.mimetype(b['bitstream_format_id'])
+            if bformat_mimetype is None:
                 _logger.critical(f'Bitstream format not found for [{b_id}]')
 
             params = {
                 'internal_id': b['internal_id'],
                 'storeNumber': b['store_number'],
-                'bitstreamFormat': bformat_uuid,
+                'bitstreamFormat': bformat_mimetype,
                 'deleted': b['deleted'],
                 'sequenceId': b['sequence_id'],
                 'bundle_id': None,
