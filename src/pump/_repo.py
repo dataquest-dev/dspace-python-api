@@ -151,9 +151,11 @@ class repo:
         if len(only_in_7) > LIMIT:
             too_many_7 = f"!!! TOO MANY [{len(only_in_7)}] "
 
+        do_not_show = do_not_show or "CI" in os.environ or "GITHUB_ACTION" in os.environ
         # assume we do not have emails that we do not want to show in db7
         if do_not_show:
             only_in_5 = [x if "@" not in x else "....." for x in only_in_5]
+            only_in_7 = [x if "@" not in x else "....." for x in only_in_7]
 
         _logger.info(f"Table [{table_name}]: v5:[{len(vals5)}], v7:[{len(vals7)}]\n"
                      f"  {too_many_5}only in v5:[{only_in_5[:LIMIT]}]\n"
@@ -194,27 +196,41 @@ class repo:
             _logger.info(
                 f"Table [{table_name: >20}] {msg}  NON NULL [{col_name:>15}] v5:[{len(vals5_cmp):3}], v7:[{len(vals7_cmp):3}]")
 
-    def diff_table_sql(self, db5, table_name: str, sql5, sql7, compare):
+    def diff_table_sql(self, db5, table_name: str, sql5, sql7, compare, process_ftor):
         cols5 = []
         vals5 = db5.fetch_all(sql5, col_names=cols5)
         cols7 = []
         vals7 = self.raw_db_7.fetch_all(sql7, col_names=cols7)
-        vals5_cmp = [x[0] for x in self._filter_vals(
-            vals5, cols5, [compare]) if x[0] is not None]
-        vals7_cmp = [x[0] for x in self._filter_vals(
-            vals7, cols7, [compare]) if x[0] is not None]
+        # special case where we have different names of columns but only one column to compare
+        if compare == 0:
+            vals5_cmp = [x[0] for x in vals5 if x[0] is not None]
+            vals7_cmp = [x[0] for x in vals7 if x[0] is not None]
+        elif compare is None:
+            vals5_cmp = vals5
+            vals7_cmp = vals7
+        else:
+            vals5_cmp = [x[0] for x in self._filter_vals(
+                vals5, cols5, [compare]) if x[0] is not None]
+            vals7_cmp = [x[0] for x in self._filter_vals(
+                vals7, cols7, [compare]) if x[0] is not None]
+
+        if process_ftor is not None:
+            vals5_cmp, vals7_cmp = process_ftor(self, vals5_cmp, vals7_cmp)
 
         only_in_5 = list(set(vals5_cmp).difference(vals7_cmp))
         only_in_7 = list(set(vals7_cmp).difference(vals5_cmp))
         self._cmp_values(table_name, vals5, only_in_5, vals7, only_in_7, False)
 
-    def diff_all(self, to_validate=None):
+    def diff(self, to_validate=None):
         if to_validate is None:
             to_validate = [
                 getattr(getattr(self, x), "validate_table")
                 for x in dir(self) if hasattr(getattr(self, x), "validate_table")
             ]
         else:
+            if not hasattr(to_validate, "validate_table"):
+                _logger.warning(f"Missing validate_table in {to_validate}")
+                return
             to_validate = [to_validate.validate_table]
 
         for valid_defs in to_validate:
@@ -238,4 +254,28 @@ class repo:
                 cmp = defin.get("sql", None)
                 if cmp is not None:
                     self.diff_table_sql(
-                        db5, table_name, cmp["5"], cmp["7"], cmp["compare"])
+                        db5, table_name, cmp["5"], cmp["7"], cmp["compare"], cmp.get("process", None))
+
+    # =====
+    def uuid(self, res_type_id: int, res_id: int):
+        # find object id based on its type
+        try:
+            if res_type_id == self.communities.TYPE:
+                return self.communities.uuid(res_id)
+            if res_type_id == self.collections.TYPE:
+                return self.collections.uuid(res_id)
+            if res_type_id == self.items.TYPE:
+                return self.items.uuid(res_id)
+            if res_type_id == self.bitstreams.TYPE:
+                return self.bitstreams.uuid(res_id)
+            if res_type_id == self.bundles.TYPE:
+                return self.bundles.uuid(res_id)
+            if res_type_id == self.epersons.TYPE:
+                return self.epersons.uuid(res_id)
+            if res_type_id == self.groups.TYPE:
+                arr = self.groups.uuid(res_id)
+                if len(arr or []) > 0:
+                    return arr[0]
+        except Exception as e:
+            return None
+        return None

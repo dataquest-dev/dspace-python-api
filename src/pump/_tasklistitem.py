@@ -38,7 +38,7 @@ class tasklistitems:
             try:
                 params = {
                     'epersonUUID': epersons.uuid(task['eperson_id']),
-                    'workflowitem_id': items.wf_uuid(task['workflow_id'])
+                    'workflowitem_id': items.wf_id(task['workflow_id'])
                 }
                 resp = dspace.put_tasklistitem(params)
                 self._imported["task"] += 1

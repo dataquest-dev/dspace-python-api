@@ -24,6 +24,8 @@ class items:
         }],
         ["workspaceitem", {
         }],
+        ["collection2item", {
+        }],
     ]
 
     def __init__(self,
@@ -50,8 +52,10 @@ class items:
 
         self._id2item = {str(e['item_id']): e for e in self._items}
         self._id2uuid = {}
+        self._ws_id2v7id = {}
         self._ws_id2uuid = {}
-        self._wf_id2uuid = {}
+        self._wf_id2workflow_id = {}
+        self._wf_item_ids = []
         self._col_id2uuid = {}
         self._migrated_versions = []
 
@@ -72,12 +76,18 @@ class items:
     def __len__(self):
         return len(self._items)
 
+    def find_by_uuid(self, uuid: str):
+        for k, item_uuid in self._id2uuid.items():
+            if uuid == item_uuid:
+                return self._id2item[k]
+        return None
+
     def uuid(self, eid: int):
         assert isinstance(list(self._id2uuid.keys() or [""])[0], str)
         return self._id2uuid.get(str(eid), None)
 
-    def wf_uuid(self, wfid: int):
-        return self._wf_id2uuid.get(str(wfid), None)
+    def wf_id(self, wfid: int):
+        return self._wf_id2workflow_id.get(str(wfid), None)
 
     @property
     def imported_ws(self):
@@ -113,7 +123,7 @@ class items:
             self._done.append("ws")
             self.serialize(cache_file)
 
-        if "w2f" in self._done:
+        if "wf" in self._done:
             _logger.info("Skipping workflow import")
         else:
             if self._wf_items is not None:
@@ -135,7 +145,7 @@ class items:
             self._done.append("itemcol")
             self.serialize(cache_file)
 
-    def _import_item(self, dspace, generic_item_d, item, handles, metadatas, epersons, collections, wf=False) -> bool:
+    def _import_item(self, dspace, generic_item_d, item, handles, metadatas, epersons, collections, what: str) -> bool:
         i_id = item['item_id']
 
         data = {
@@ -152,7 +162,11 @@ class items:
         if i_handle is not None:
             data['handle'] = i_handle
         else:
-            _logger.info(f"Cannot find handle for item in ws/wf [{i_id}]")
+            log_fnc = _logger.info
+            # workspace do not need to have handle
+            if what == "workspace":
+                log_fnc = _logger.debug
+            log_fnc(f"Cannot find handle for item in {what} [{i_id}]")
 
         # the params are workspaceitem attributes
         params = {
@@ -167,21 +181,24 @@ class items:
 
         try:
             resp = dspace.put_ws_item(params, data)
-            ws_uuid = resp['id']
-            self._ws_id2uuid[str(i_id)] = ws_uuid
+            ws_id = resp['id']
+            if what == "workspace":
+                self._ws_id2v7id[str(i_id)] = ws_id
         except Exception as e:
             _logger.error(f'put_ws_item: [{i_id}] failed [{str(e)}]')
-            return False
+            return False, None
 
         try:
-            resp = dspace.fetch_item(ws_uuid)
+            resp = dspace.fetch_item(ws_id)
             i_uuid = resp['id']
             self._id2uuid[str(i_id)] = i_uuid
+            if what == "workspace":
+                self._ws_id2uuid[str(i_id)] = i_uuid
         except Exception as e:
-            _logger.error(f'fetch_item: [{ws_uuid}] failed [{str(e)}]')
-            return False
+            _logger.error(f'fetch_item: [{ws_id}] failed [{str(e)}]')
+            return False, None
 
-        return True
+        return True, ws_id
 
     def _ws_import_to(self, dspace, handles, metadatas, epersons, collections):
         expected = len(self._ws_items)
@@ -190,8 +207,8 @@ class items:
 
         for ws in progress_bar(self._ws_items):
             item = self.item(ws['item_id'])
-            ret = self._import_item(dspace, ws, item, handles,
-                                    metadatas, epersons, collections)
+            ret, _1 = self._import_item(dspace, ws, item, handles,
+                                        metadatas, epersons, collections, "workspace")
             if ret:
                 self._imported["ws"] += 1
 
@@ -208,18 +225,18 @@ class items:
         for wf in progress_bar(self._wf_items):
             wf_id = wf['item_id']
             item = self.item(wf_id)
-            ret = self._import_item(dspace, wf, item, handles,
-                                    metadatas, epersons, collections, True)
+            ret, ws_id = self._import_item(dspace, wf, item, handles,
+                                           metadatas, epersons, collections, "workflow")
             if not ret:
                 continue
 
             # create workflowitem from created workspaceitem
-            params = {'id': str(self._ws_id2uuid[str(wf_id)])}
-            # remove ws from dict because this ws will be removed from db
-            del self._ws_id2uuid[str(wf_id)]
+            params = {'id': str(ws_id)}
             try:
                 resp = dspace.put_wf_item(params)
-                self._wf_id2uuid[str(wf['workflow_id'])] = resp.headers['workflowitem_id']
+                self._wf_id2workflow_id[str(wf['workflow_id'])
+                                        ] = resp.headers['workflowitem_id']
+                self._wf_item_ids.append(wf_id)
                 self._imported["wf"] += 1
             except Exception as e:
                 _logger.error(f'put_wf_item: [{wf_id}] failed [{str(e)}]')
@@ -241,10 +258,10 @@ class items:
             i_id = item['item_id']
 
             # is it already imported in WS?
-            if str(i_id) in self._ws_id2uuid:
+            if str(i_id) in self._ws_id2v7id:
                 ws_items += 1
                 continue
-            if str(i_id) in self._wf_id2uuid:
+            if i_id in self._wf_item_ids:
                 wf_items += 1
                 continue
 
@@ -334,8 +351,10 @@ class items:
             "col2item": self._col2item,
             "id2item": self._id2item,
             "id2uuid": self._id2uuid,
+            "ws_id2v7id": self._ws_id2v7id,
             "ws_id2uuid": self._ws_id2uuid,
-            "wf_id2uuid": self._wf_id2uuid,
+            "wf_id2uuid": self._wf_id2workflow_id,
+            "wf_item_ids": self._wf_item_ids,
             "col_id2uuid": self._col_id2uuid,
             "imported": self._imported,
             "done": self._done,
@@ -352,8 +371,10 @@ class items:
         self._col2item = data["col2item"]
         self._id2item = data["id2item"]
         self._id2uuid = data["id2uuid"]
+        self._ws_id2v7id = data["ws_id2v7id"]
         self._ws_id2uuid = data["ws_id2uuid"]
-        self._wf_id2uuid = data["wf_id2uuid"]
+        self._wf_id2workflow_id = data["wf_id2uuid"]
+        self._wf_item_ids = data.get("wf_item_ids", [])
         self._col_id2uuid = data["col_id2uuid"]
         self._imported = data["imported"]
         self._done = data["done"]
@@ -436,13 +457,13 @@ SELECT setval('versionhistory_seq', {versionhistory_new_id})
     def raw_after_import(self, env, db7, db5_dspace, metadatas):
         # Migration process
         self._migrate_versions(env, db7, db5_dspace, metadatas)
-        self._check_sum(db7, db5_dspace)
+        self._check_sum(db7, db5_dspace, metadatas)
 
     def get_newer_versions(self, item_id: int, metadatas):
-        return self._get_versions(item_id, metadatas, metadatas.DC_RELATION_ISREPLACEDBY_ID)
+        return self._get_versions(item_id, metadatas, metadatas.V5_DC_RELATION_ISREPLACEDBY_ID)
 
     def get_older_versions(self, item_id: int, metadatas):
-        return self._get_versions(item_id, metadatas, metadatas.DC_RELATION_REPLACES_ID)
+        return self._get_versions(item_id, metadatas, metadatas.V5_DC_RELATION_REPLACES_ID)
 
     def _get_versions(self, item_id: int, metadatas, metadata_field: int):
         """
@@ -504,7 +525,8 @@ SELECT setval('versionhistory_seq', {versionhistory_new_id})
             return None
 
         # Get handle of the current Item
-        cur_handle = metadatas.value(items.TYPE, item_id, metadatas.DC_IDENTIFIER_URI_ID)
+        cur_handle = metadatas.value(
+            items.TYPE, item_id, metadatas.V5_DC_IDENTIFIER_URI_ID)
         if len(cur_handle or []) == 0:
             _logger.error(f'Cannot find handle for the item with id: {item_id}')
             self._versions["not_imported_handles"].append(item_id)
@@ -512,7 +534,7 @@ SELECT setval('versionhistory_seq', {versionhistory_new_id})
 
         return previous_versions + [cur_handle[0]] + newer_versions
 
-    def _check_sum(self, db7, db5_dspace):
+    def _check_sum(self, db7, db5_dspace, metadatas):
         """
             Check if item versions importing was successful
             Select item ids from CLARIN-DSpace5 which has some version metadata
@@ -522,29 +544,52 @@ SELECT setval('versionhistory_seq', {versionhistory_new_id})
 
         # Select item ids from CLARIN-DSpace5 which has some version metadata
         clarin_5_item_ids = db5_dspace.fetch_all(
-            "SELECT resource_id FROM metadatavalue WHERE metadata_field_id in (50,51) group by resource_id;"
+            f"SELECT resource_id FROM metadatavalue WHERE metadata_field_id in ({metadatas.V5_DC_RELATION_REPLACES_ID},{metadatas.V5_DC_RELATION_ISREPLACEDBY_ID}) group by resource_id;"
         )
 
         # Select item uuids from CLARIN-DSpace7 which record in the `versionitem` table
-        clarin_7_item_uuids = db7.fetch_all("select item_id from versionitem;")
+        clarin_7_item_uuids = db7.fetch_all("select item_id from versionitem")
 
         if clarin_5_item_ids is None or clarin_7_item_uuids is None:
             _logger.error('Cannot check result of importing item versions.')
             return
 
+        clarin_7_item_uuids = set([x[0] for x in clarin_7_item_uuids])
+
         # Some items could not be imported - uuid
-        not_imported_items = []
-        clarin_5_ids_to_uuid = [self.uuid(x[0]) for x in clarin_5_item_ids]
+        clarin_5_ids_to_uuid = set([self.uuid(x[0]) for x in clarin_5_item_ids])
 
-        # Check if the clarin_5_uuid is in the clarin_7_historyversion_uuid
-        for clarin_7_uuid in clarin_7_item_uuids:
-            # clarin_5_uuid = item_id_dict[clarin_5_id]
-            if clarin_7_uuid[0] not in clarin_5_ids_to_uuid:
-                not_imported_items.append(clarin_7_uuid[0])
+        # Check v7
+        problematic = []
+        for uuid7 in clarin_7_item_uuids:
+            if uuid7 in clarin_5_ids_to_uuid:
+                continue
+            if uuid7 in self._ws_id2uuid.values():
+                continue
+            # if item is in wf/ws it will have the relation stored in versionitem
+            # in v5, we stored it after item installation
 
-        if len(not_imported_items) > 0:
-            _logger.warning('Version migration MAYBE was not successful for the items below because the item could be'
-                            ' a workspace or previous version is withdrawn.')
-            for non_imported_uuid in not_imported_items:
-                _logger.warning(
-                    f'Please check versions for the Item with: {non_imported_uuid}')
+            problematic.append(uuid7)
+        if len(problematic) > 0:
+            _logger.warning(
+                f'We have [{len(problematic)}] versions in v7 `versionitem` that are not expected!')
+            for uuid in problematic:
+                _logger.warning(f'UUID: {uuid}')
+
+        # Check v5
+        problematic = []
+        for uuid5 in clarin_5_ids_to_uuid:
+            if uuid5 in clarin_7_item_uuids:
+                continue
+            # if withdrawn, we do not expect it to be in v7 versionitem
+            # TODO(jm): check that previous version is replaced by external item
+            item_d = self.find_by_uuid(uuid5)
+            if (item_d or {}).get('withdrawn', False):
+                continue
+
+            problematic.append(uuid5)
+        if len(problematic) > 0:
+            _logger.warning(
+                f'We have [{len(problematic)}] versions in v5 not migrated into `versionitem`!')
+            for uuid in problematic:
+                _logger.warning(f'UUID: {uuid}')

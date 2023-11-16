@@ -90,6 +90,7 @@ if __name__ == "__main__":
     _logger.info("Loading repo objects")
     repo = pump.repo(env, dspace_be)
 
+    ####
     _logger.info("New instance database status:")
     repo.raw_db_7.status()
     _logger.info("Reference database dspace status:")
@@ -97,6 +98,7 @@ if __name__ == "__main__":
     _logger.info("Reference database dspace-utilities status:")
     repo.raw_db_utilities_5.status()
 
+    import_sep = f"\n{40 * '*'}\n"
     _logger.info("Starting import")
 
     # import handles
@@ -106,6 +108,8 @@ if __name__ == "__main__":
     else:
         repo.handles.import_to(dspace_be)
         repo.handles.serialize(cache_file)
+    repo.diff(repo.handles)
+    _logger.info(import_sep)
 
     # import metadata
     cache_file = env["cache"]["metadataschema"]
@@ -115,6 +119,8 @@ if __name__ == "__main__":
     else:
         repo.metadatas.import_to(dspace_be)
         repo.metadatas.serialize(cache_file)
+    repo.diff(repo.metadatas)
+    _logger.info(import_sep)
 
     # import bitstreamformatregistry
     cache_file = env["cache"]["bitstreamformat"]
@@ -124,6 +130,8 @@ if __name__ == "__main__":
     else:
         repo.bitstreamformatregistry.import_to(dspace_be)
         repo.bitstreamformatregistry.serialize(cache_file)
+    repo.diff(repo.bitstreamformatregistry)
+    _logger.info(import_sep)
 
     # import community
     cache_file = env["cache"]["community"]
@@ -134,6 +142,8 @@ if __name__ == "__main__":
         repo.communities.import_to(dspace_be, repo.handles, repo.metadatas)
         if len(repo.communities) == repo.communities.imported_coms:
             repo.communities.serialize(cache_file)
+    repo.diff(repo.communities)
+    _logger.info(import_sep)
 
     # import collection
     cache_file = env["cache"]["collection"]
@@ -144,6 +154,8 @@ if __name__ == "__main__":
         repo.collections.import_to(dspace_be, repo.handles,
                                    repo.metadatas, repo.communities)
         repo.collections.serialize(cache_file)
+    repo.diff(repo.collections)
+    _logger.info(import_sep)
 
     # import registration data
     cache_file = env["cache"]["registrationdata"]
@@ -152,6 +164,8 @@ if __name__ == "__main__":
     else:
         repo.registrationdatas.import_to(dspace_be)
         repo.registrationdatas.serialize(cache_file)
+    repo.diff(repo.registrationdatas)
+    _logger.info(import_sep)
 
     # import eperson groups
     cache_file = env["cache"]["epersongroup"]
@@ -162,6 +176,8 @@ if __name__ == "__main__":
         repo.groups.import_to(dspace_be, repo.metadatas, repo.collections.groups_id2uuid,
                               repo.communities.imported_groups)
         repo.groups.serialize(cache_file)
+    repo.diff(repo.groups)
+    _logger.info(import_sep)
 
     # import eperson
     cache_file = env["cache"]["eperson"]
@@ -170,6 +186,8 @@ if __name__ == "__main__":
     else:
         repo.epersons.import_to(env, dspace_be, repo.metadatas)
         repo.epersons.serialize(cache_file)
+    repo.diff(repo.epersons)
+    _logger.info(import_sep)
 
     # import userregistrations
     cache_file = env["cache"]["userregistration"]
@@ -178,6 +196,8 @@ if __name__ == "__main__":
     else:
         repo.userregistrations.import_to(dspace_be, repo.epersons)
         repo.userregistrations.serialize(cache_file)
+    repo.diff(repo.userregistrations)
+    _logger.info(import_sep)
 
     # import group2eperson
     cache_file = env["cache"]["group2eperson"]
@@ -186,6 +206,8 @@ if __name__ == "__main__":
     else:
         repo.egroups.import_to(dspace_be, repo.groups, repo.epersons)
         repo.egroups.serialize(cache_file)
+    repo.diff(repo.egroups)
+    _logger.info(import_sep)
 
     # import licenses
     cache_file = env["cache"]["license"]
@@ -195,6 +217,8 @@ if __name__ == "__main__":
     else:
         repo.licenses.import_to(env, dspace_be, repo.epersons)
         repo.licenses.serialize(cache_file)
+    repo.diff(repo.licenses)
+    _logger.info(import_sep)
 
     # import item
     cache_file = env["cache"]["item"]
@@ -208,6 +232,8 @@ if __name__ == "__main__":
         repo.items.serialize(cache_file)
         repo.items.raw_after_import(
             env, repo.raw_db_7, repo.raw_db_dspace_5, repo.metadatas)
+    repo.diff(repo.items)
+    _logger.info(import_sep)
 
     # import tasklists
     cache_file = env["cache"]["tasklistitem"]
@@ -216,6 +242,8 @@ if __name__ == "__main__":
     else:
         repo.tasklistitems.import_to(dspace_be, repo.epersons, repo.items)
         repo.tasklistitems.serialize(cache_file)
+    repo.diff(repo.tasklistitems)
+    _logger.info(import_sep)
 
     # import bundle
     cache_file = env["cache"]["bundle"]
@@ -224,6 +252,8 @@ if __name__ == "__main__":
     else:
         repo.bundles.import_to(dspace_be, repo.metadatas, repo.items)
         repo.bundles.serialize(cache_file)
+    repo.diff(repo.bundles)
+    _logger.info(import_sep)
 
     # import bitstreams
     cache_file = env["cache"]["bitstream"]
@@ -235,6 +265,8 @@ if __name__ == "__main__":
         repo.bitstreams.import_to(
             env, cache_file, dspace_be, repo.metadatas, repo.bitstreamformatregistry, repo.bundles, repo.communities, repo.collections)
         repo.bitstreams.serialize(cache_file)
+    repo.diff(repo.bitstreams)
+    _logger.info(import_sep)
 
     # import usermetadata
     cache_file = env["cache"]["usermetadata"]
@@ -243,6 +275,8 @@ if __name__ == "__main__":
     else:
         repo.usermetadatas.import_to(dspace_be, repo.bitstreams, repo.userregistrations)
         repo.usermetadatas.serialize(cache_file)
+    repo.diff(repo.usermetadatas)
+    _logger.info(import_sep)
 
     # before importing of resource policies we have to delete all
     # created data
@@ -255,6 +289,8 @@ if __name__ == "__main__":
     else:
         repo.resourcepolicies.import_to(env, dspace_be, repo)
         repo.resourcepolicies.serialize(cache_file)
+    repo.diff(repo.resourcepolicies)
+    _logger.info(import_sep)
 
     # migrate sequences
     repo.sequences.migrate(env, repo.raw_db_7, repo.raw_db_dspace_5,
@@ -271,3 +307,6 @@ if __name__ == "__main__":
     repo.raw_db_dspace_5.status()
     _logger.info("Reference database dspace-utilities status:")
     repo.raw_db_utilities_5.status()
+
+    _logger.info("Database difference")
+    repo.diff()

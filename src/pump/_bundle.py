@@ -13,11 +13,6 @@ class bundles:
     validate_table = [
         ["bundle", {
         }],
-        ["bundle2bitstream", {
-        }],
-        ["checksum_results", {
-            "compare": ["result_description", "result_code"],
-        }],
     ]
 
     def __init__(self, bundle_file_str: str, item2bundle_file_str: str):

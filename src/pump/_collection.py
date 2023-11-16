@@ -15,7 +15,7 @@ class collections:
         ["collection", {
             "nonnull": ["logo_bitstream_id"],
         }],
-        ["collection2item", {
+        ["community2collection", {
         }],
     ]
 

@@ -34,7 +34,7 @@ class epersons:
             "compare": ["email", "netid"],
         }],
 
-        ["eperson", {
+        ["epersongroup2eperson", {
             # do not use compare because of email field (GDPR)
             "sql": {
                 "5": "select epersongroup.eperson_group_id, eperson.email from epersongroup2eperson inner join epersongroup ON epersongroup2eperson.eperson_group_id=epersongroup.eperson_group_id inner join eperson ON epersongroup2eperson.eperson_id=eperson.eperson_id",
@@ -173,7 +173,9 @@ class groups:
 
     @time_method
     def import_to(self, dspace, groups, epersons):
-        _logger.info(f"Importing epersongroup2eperson [{len(self._groups)}]")
+        expected = len(self)
+        log_key = "epersongroup2eperson"
+        log_before_import(log_key, expected)
 
         for g in progress_bar(self._groups):
             g_id = g['eperson_group_id']
@@ -193,7 +195,7 @@ class groups:
             except Exception as e:
                 _logger.error(f'put_egroup: [{g_id}] failed [{str(e)}]')
 
-        _logger.info(f"Epersongroup2eperson [{self.imported}] imported!")
+        log_after_import(log_key, expected, self.imported)
 
     # =============
 

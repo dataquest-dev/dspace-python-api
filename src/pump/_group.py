@@ -1,7 +1,36 @@
+import re
 import logging
 from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.groups")
+
+
+def _epersongroup_process(repo, v5data: list, v7data: list):
+    """
+        v5: ['COLLECTION_17_DEFAULT_READ', 'COLLECTION_20_WORKFLOW_STEP_2']
+        v7: ['COLLECTION_f3c65f29-355e-4ca2-a05b-f3e30883e09f_BITSTREAM_DEFAULT_READ']
+    """
+    rec = re.compile("(COLLECTION|COMMUNITY)_(\d+)_(.*)")
+    v5data_new = []
+    for val in v5data:
+        m = rec.match(val)
+        if m is None:
+            v5data_new.append(val)
+            continue
+        c, c_id, role = m.groups()
+        uuid = repo.collections.uuid(c_id) if c == "COLLECTION" \
+            else repo.communities.uuid(c_id)
+        if role == "WORKFLOW_STEP_2":
+            role = "WORKFLOW_ROLE_editor"
+        if role == "DEFAULT_READ":
+            v5data_new.append(f"{m.group(1)}_{uuid}_BITSTREAM_DEFAULT_READ")
+            v5data_new.append(f"{m.group(1)}_{uuid}_ITEM_DEFAULT_READ")
+        else:
+            v5data_new.append(f"{m.group(1)}_{uuid}_{role}")
+    _logger.info(
+        f"Changing v5 groups to uuid version and adding bitstream/item reads: {len(v5data)} -> {len(v5data_new)}")
+
+    return v5data_new, v7data
 
 
 class groups:
@@ -11,6 +40,16 @@ class groups:
             # do not use compare because of email field (GDPR)
             "nonnull": ["eperson_group_id"],
         }],
+
+        ["epersongroup", {
+            "sql": {
+                "5": "select metadatavalue.text_value from epersongroup inner join metadatavalue ON metadatavalue.resource_id=epersongroup.eperson_group_id and metadatavalue.resource_type_id=6",
+                "7": "select name from epersongroup",
+                "compare": 0,
+                "process": _epersongroup_process,
+            }
+        }],
+
         ["group2group", {
             # do not use compare because of email field (GDPR)
             "nonnull": ["parent_id", "child_id"],
@@ -106,7 +145,7 @@ class groups:
             Mapped tables: epersongroup
         """
         expected = len(self._eperson)
-        log_key = "epersons"
+        log_key = "epersongroup"
         log_before_import(log_key, expected)
 
         grps = []
@@ -158,7 +197,7 @@ class groups:
             Mapped tables: group2group
         """
         expected = len(self._g2g)
-        log_key = "epersons g2g"
+        log_key = "epersons g2g (could have children)"
         log_before_import(log_key, expected)
 
         for g2g in progress_bar(self._g2g):

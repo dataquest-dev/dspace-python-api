@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, IMPORT_LIMIT, serialize, deserialize, log_before_import, log_after_import
+from ._utils import read_json, time_method, serialize, deserialize, log_before_import, log_after_import
 from ._item import items
 
 _logger = logging.getLogger("pump.handle")
@@ -24,7 +24,8 @@ class handles:
         for h in js:
             res_type_id = h['resource_type_id']
             res_id = h['resource_id']
-            arr = self._handles.setdefault(str(res_type_id), {}).setdefault(str(res_id), [])
+            arr = self._handles.setdefault(
+                str(res_type_id), {}).setdefault(str(res_id), [])
             arr.append(h)
 
     def __len__(self):
@@ -51,10 +52,15 @@ class handles:
 
     # =============
 
+    def get_handles_by_type(self, type_id: int = None, res_id: int = None):
+        return self._handles.get(str(type_id), {}).get(str(res_id), [])
+
+    # =============
+
     @time_method
     def import_to(self, dspace):
         # external
-        arr = self._handles.get(None, {}).get(None, [])[:IMPORT_LIMIT]
+        arr = self.get_handles_by_type(None, None)
         expected = len(arr)
         log_key = "external handles"
         log_before_import(log_key, expected)
@@ -63,7 +69,7 @@ class handles:
         self._imported += cnt
 
         # no object
-        arr = self._handles[str(items.TYPE)].get(None, [])[:IMPORT_LIMIT]
+        arr = self.get_handles_by_type(items.TYPE, None)
         expected = len(arr)
         log_key = "handles"
         log_before_import(log_key, expected)
@@ -77,11 +83,7 @@ class handles:
         """
             Get handle based on object type and its id.
         """
-        type_id = str(type_id)
-        obj_id = str(obj_id)
-        if type_id not in self._handles:
+        arr = self.get_handles_by_type(type_id, obj_id)
+        if len(arr) == 0:
             return None
-        if obj_id not in self._handles[type_id]:
-            return None
-        # self._imported += 1 ???
-        return self._handles[type_id][obj_id][0]['handle']
+        return arr[0]['handle']

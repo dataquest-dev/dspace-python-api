@@ -10,8 +10,6 @@ class usermetadatas:
         Mapped tables: user_metadata, license_resource_user_allowance
     """
 
-    TYPE = 0
-
     def __init__(self, usermetadata_file_str: str, userallowance_file_str: str, resourcemapping_file_str: str):
         self._umeta = read_json(usermetadata_file_str)
         self._uallowance = read_json(userallowance_file_str)
@@ -77,7 +75,12 @@ class usermetadatas:
                      } for um in um_arr]
 
             try:
-                bs_uuid = bitstreams.uuid(self._rmap_id2bsid[map_id])
+                bs_id = self._rmap_id2bsid[map_id]
+                bs_uuid = bitstreams.uuid(bs_id)
+                if bs_uuid is None:
+                    _logger.critical(
+                        f"Cannot find bitstream uuid for mapping_id->bsid: [{map_id}]->[{bs_id}]")
+                    continue
                 userreg_id = userregistrations.uuid(eperson_id)
 
                 # Prepare params for the import endpoint

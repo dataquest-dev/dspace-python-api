@@ -17,7 +17,10 @@ settings = {
 
     "ignore": {
         "missing-icons": ["PUB", "RES", "ReD", "Inf"],
-        "epersons": [198],
+        "epersons": [
+            # ignore - empty person
+            198
+        ],
     },
 
     "db_dspace_7": {
@@ -54,6 +57,6 @@ settings = {
     "licenses": {
         "to_replace_def_url": "https://lindat.mff.cuni.cz/repository/xmlui/page/",
         # TODO(jm): replace with correct url
-        "replace_with_def_url": "http://dev-5.pc:85/XXX/static",
+        "replace_with_def_url": "http://dev-5.pc:85/XXX/static/",
     }
 }

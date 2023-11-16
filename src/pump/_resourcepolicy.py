@@ -4,28 +4,6 @@ from ._utils import read_json, time_method, serialize, deserialize, progress_bar
 _logger = logging.getLogger("pump.resourcepolicy")
 
 
-class uuider:
-    def __init__(self, repo):
-        self.repo = repo
-
-    def get(self, res_type_id: int, res_id: int):
-        # find object id based on its type
-        try:
-            if res_type_id == self.repo.communities.TYPE:
-                return self.repo.communities.uuid(res_id)
-            if res_type_id == self.repo.collections.TYPE:
-                return self.repo.collections.uuid(res_id)
-            if res_type_id == self.repo.items.TYPE:
-                return self.repo.items.uuid(res_id)
-            if res_type_id == self.repo.bitstreams.TYPE:
-                return self.repo.bitstreams.uuid(res_id)
-            if res_type_id == self.repo.bundles.TYPE:
-                return self.repo.bundles.uuid(res_id)
-        except Exception as e:
-            return None
-        return None
-
-
 class resourcepolicies:
     """
         SQL:
@@ -58,14 +36,13 @@ class resourcepolicies:
         log_key = "resourcepolicies"
         log_before_import(log_key, expected)
 
-        uuder = uuider(repo)
         dspace_actions = env["dspace"]["actions"]
         failed = 0
 
         for res_policy in progress_bar(self._respol):
             res_id = res_policy['resource_id']
             res_type_id = res_policy['resource_type_id']
-            res_uuid = uuder.get(res_type_id, res_id)
+            res_uuid = repo.uuid(res_type_id, res_id)
             if res_uuid is None:
                 _logger.critical(
                     f"Cannot find uuid for [{res_type_id}] [{res_id}] [{str(res_policy)}]")

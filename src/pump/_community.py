@@ -12,8 +12,6 @@ class communities:
     validate_table = [
         ["community", {
         }],
-        ["community2collection", {
-        }],
         ["community2community", {
         }],
     ]

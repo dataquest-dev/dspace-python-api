@@ -188,12 +188,12 @@ def update_license_def(env, lic_def_url: str):
         return lic_def_url
 
     # Replace old site url to a new site url
-    new_lic_def_url = lic_def_url.replace(
-        env_lic["to_replace_def_url"],
-        env_lic["replace_with_def_url"]
-    )
+    if env_lic["to_replace_def_url"] in lic_def_url:
+        lic_def_url = lic_def_url.replace(
+            env_lic["to_replace_def_url"],
+            env_lic["replace_with_def_url"]
+        )
+        # File name has a missing `.html` suffix -> add that suffix to the end of the definition url
+        lic_def_url += '.html'
 
-    # File name has a missing `.html` suffix -> add that suffix to the end of the definition url
-    new_lic_def_url = new_lic_def_url + '.html'
-
-    return new_lic_def_url
+    return lic_def_url

@@ -15,6 +15,11 @@ class bitstreams:
         ["bitstream", {
             "compare": ["checksum", "internal_id", "deleted"],
         }],
+        ["bundle2bitstream", {
+        }],
+        ["checksum_results", {
+            "compare": ["result_description", "result_code"],
+        }],
 
     ]
 
@@ -63,7 +68,7 @@ class bitstreams:
         else:
             self._done.append("bs")
             self._bitstream_import_to(env, dspace, metadatas,
-                                      bitstreamformatregistry, bundles)
+                                      bitstreamformatregistry, bundles, communities, collections)
             self.serialize(cache_file)
 
         if "logos" in self._done:
@@ -133,7 +138,7 @@ class bitstreams:
 
         log_after_import(log_key, expected, self.imported_com_logos)
 
-    def _bitstream_import_to(self, env, dspace, metadatas, bitstreamformatregistry, bundles):
+    def _bitstream_import_to(self, env, dspace, metadatas, bitstreamformatregistry, bundles, communities, collections):
         expected = len(self)
         log_key = "bitstreams"
         log_before_import(log_key, expected)
@@ -157,8 +162,14 @@ class bitstreams:
             if b_meta is not None:
                 data['metadata'] = b_meta
             else:
-                if not b_deleted:
-                    _logger.warning(f'No metadata for bitstream [{b_id}]')
+                com_logo = b_id in communities.logos.values()
+                col_logo = b_id in collections.logos.values()
+                if b_deleted or com_logo or col_logo:
+                    log_fnc = _logger.debug
+                else:
+                    log_fnc = _logger.warning
+                log_fnc(
+                    f'No metadata for bitstream [{b_id}] deleted: [{b_deleted}] com logo:[{com_logo}] col logo:[{col_logo}]')
 
             data['sizeBytes'] = b['size_bytes']
             data['checkSum'] = {

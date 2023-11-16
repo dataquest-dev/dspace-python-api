@@ -123,6 +123,7 @@ class bitstreamformatregistry:
             "id2uuid": self._id2uuid,
             "imported": self._imported,
             "unknown_format_id": self._unknown_format_id,
+            "id2mimetype": self._id2mimetype,
         }
         serialize(file_str, data)
 
@@ -132,3 +133,4 @@ class bitstreamformatregistry:
         self._id2uuid = data["id2uuid"]
         self._imported = data["imported"]
         self._unknown_format_id = data["unknown_format_id"]
+        self._id2mimetype = data["id2mimetype"]

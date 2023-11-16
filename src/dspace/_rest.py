@@ -1,5 +1,5 @@
 import logging
-from json import JSONDecodeError
+# from json import JSONDecodeError
 from ._http import response_to_json
 from .impl import client
 
@@ -414,7 +414,13 @@ class rest:
                         ascii_data = ascii_data[:5]
                 if len(ascii_data) > 80:
                     ascii_data = f"{ascii_data[:70]}..."
-                msg = f'POST [{url}] for [{ascii_data}] failed. Exception: [{str(e)}]'
+                msg_r = ""
+                try:
+                    msg_r = str(r)
+                except Exception:
+                    pass
+
+                msg = f'POST [{url}] for [{ascii_data}] failed. Exception: [{str(e)}][{msg_r}]'
                 _logger.error(msg)
                 yield None
         _logger.debug(f"Imported [{url}] successfully")
@@ -461,8 +467,4 @@ class rest:
         raise ConnectionError(r.text)
 
     def _resp_ok(self, r):
-        try:
-            r = r.json()
-            _logger.debug(f'{r["type"]} created successfully!')
-        except JSONDecodeError:
-            _logger.debug("Response is not JSON, but it is OK.")
+        return True
