@@ -107,7 +107,7 @@ class resourcepolicies:
             # get group if it is not none
             eg_id = res_policy['epersongroup_id']
             if eg_id is not None:
-                group_list1 = [repo.groups.uuid(eg_id)]
+                group_list1 = repo.groups.uuid(eg_id)
                 group_list2 = repo.collections.group_uuid(eg_id)
                 group_list = set(group_list1 + group_list2)
                 if len(group_list) == 0:
