@@ -15,6 +15,11 @@ def _metadatavalue_process(repo, v5data: list, v7data: list):
         # normalize it, not 100% because of licence-UD-2.2
         return text.split('/')[-1].split('.')[0]
 
+    def norm_text(text):
+        # this should not be a reasonable list of replacements but rather
+        # instance specific use cases
+        return text.replace("\u2028", "\n").rstrip()
+
     rec_complex_funds = re.compile("(euFunds|nationalFunds|ownFunds|@@Other)")
     v5data_new = []
     V5_FIELD_ID_APPROX_DATE = repo.metadatas.get_field_id_by_name_v5(
@@ -63,9 +68,7 @@ def _metadatavalue_process(repo, v5data: list, v7data: list):
         if field_id_v7 == repo.metadatas.V7_FIELD_ID_TITLE and res_type_id == repo.groups.TYPE:
             continue
 
-        # strip whitespaces
-        text = text.rstrip()
-
+        text = norm_text(text)
         v5data_new.append((uuid, text, field_id_v7))
 
     # cleanup
@@ -99,6 +102,7 @@ def _metadatavalue_process(repo, v5data: list, v7data: list):
         if field_id == repo.metadatas.V7_FIELD_ID_IDENTIFIER_URI:
             text = text.replace("http://dev-5.pc:88/handle/", "http://hdl.handle.net/")
 
+        text = norm_text(text)
         v7data_new.append((uuid, text, field_id))
 
     _logger.info(
