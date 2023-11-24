@@ -450,7 +450,7 @@ SELECT setval('versionhistory_seq', {versionhistory_new_id})
                 # Update sequence
                 db7.exe_sql(f"SELECT setval('versionitem_seq', {versionitem_new_id})")
                 versionitem_new_id += 1
-                self._migrated_versions.append(item_id)
+                self._migrated_versions.append(str(item_id))
 
         _logger.info(f"Migrated versions [{len(self._migrated_versions)}]")
 
