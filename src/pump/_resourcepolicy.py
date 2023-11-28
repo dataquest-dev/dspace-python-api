@@ -44,10 +44,10 @@ class resourcepolicies:
             res_type_id = res_policy['resource_type_id']
             # If resourcepolicy belongs to some Item or Bundle, check if that Item/Bundle wasn't removed from the table.
             # Somehow, the resourcepolicy table could still have a reference to deleted items/bundles.
-            if res_type_id == repo.items.TYPE or res_type_id == repo.bundles.TYPE:
-                if repo.items.uuid(res_id) is None and repo.bundles.uuid(res_id) is None:
+            if res_type_id in [repo.items.TYPE, repo.bundles.TYPE]:
+                if repo.uuid(res_type_id, res_id) is None:
                     _logger.info(
-                        f"Cannot import resource policy [{str(res_id)}] of the Item/Bundle that has already been deleted.")
+                        f"Cannot import resource policy [{res_id}] for the record with type [{res_type_id}] that has already been deleted.")
                     continue
 
             res_uuid = repo.uuid(res_type_id, res_id)
