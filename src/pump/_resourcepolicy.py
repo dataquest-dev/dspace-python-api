@@ -53,7 +53,6 @@ class resourcepolicies:
                                  f"has already been deleted.")
                     continue
 
-            # Get items and bundles json
             res_uuid = repo.uuid(res_type_id, res_id)
             if res_uuid is None:
                 _logger.critical(
