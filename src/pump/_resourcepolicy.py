@@ -39,16 +39,13 @@ class resourcepolicies:
         dspace_actions = env["dspace"]["actions"]
         failed = 0
 
-        item_ids = repo.items._id2uuid.keys()
-        bundle_ids = repo.bundles._id2uuid.keys()
-
         for res_policy in progress_bar(self._respol):
             res_id = res_policy['resource_id']
             res_type_id = res_policy['resource_type_id']
             # If resourcepolicy belongs to some Item or Bundle, check if that Item/Bundle wasn't removed from the table.
             # Somehow, the resourcepolicy table could still have a reference to deleted items/bundles.
             if res_type_id == repo.items.TYPE or res_type_id == repo.bundles.TYPE:
-                if str(res_id) not in item_ids and str(res_id) not in bundle_ids:
+                if repo.items.uuid(res_id) is None and repo.bundles.uuid(res_id) is None:
                     _logger.info(f"Cannot import resource policy [{str(res_id)}] of the Item/Bundle that "
                                  f"has already been deleted.")
                     continue
