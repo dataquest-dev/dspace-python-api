@@ -78,8 +78,8 @@ class usermetadatas:
                 bs_id = self._rmap_id2bsid[map_id]
                 bs_uuid = bitstreams.uuid(bs_id)
                 if bs_uuid is None:
-                    _logger.critical(
-                        f"Cannot find bitstream uuid for mapping_id->bsid: [{map_id}]->[{bs_id}]")
+                    _logger.info(
+                        f"Cannot import user metadata for mapping_id->bsid: [{map_id}]->[{bs_id}] because the bitstream has probably already been deleted.")
                     continue
                 userreg_id = userregistrations.uuid(eperson_id)
 
