@@ -31,16 +31,17 @@ def convert_response_to_json(response: requests.models.Response):
     return json.loads(response.content.decode('utf-8'))
 
 
-def do_api_post(url, params: dict, json_p):
+def do_api_post(url, params: dict, json_p, content_type='application/json'):
     """
     Insert data into database by api.
+    @param content_type: e.g. multipart/form-data, but it is `json` as default
     @param url: url for api post
     @param params: parameters for api post
     @param json_p: posted data
     @return: response from api post
     """
     url = API_URL + url
-    response = rest_proxy.d.api_post(url, params, json_p)
+    response = rest_proxy.d.api_post(url, params, json_p, False, content_type)
     return response
 
 
@@ -94,3 +95,23 @@ def save_dict_as_json(json_name, dictionary: dict):
 def create_dict_from_json(json_name):
     return {int(key): value
             for key, value in read_json(json_name, MAPPING_PATH).items()}
+
+
+def create_bitstream(bundle=None, name=None, path=None, mime=None, metadata=None):
+    return rest_proxy.d.create_bitstream(bundle, name, path, mime, metadata)
+
+
+def create_community(parent, data):
+    return rest_proxy.d.create_community(parent, data)
+
+
+def create_collection(parent, data):
+    return rest_proxy.d.create_collection(parent, data)
+
+
+def create_item(parent, data):
+    return rest_proxy.d.create_item(parent, data)
+
+
+def create_bundle(item):
+    return rest_proxy.d.create_bundle(item)
