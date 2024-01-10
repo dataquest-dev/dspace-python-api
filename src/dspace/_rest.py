@@ -468,3 +468,23 @@ class rest:
 
     def _resp_ok(self, r):
         return True
+
+    def create_community(self, parent, data):
+        _logger.debug(f'Creating community: {data}')
+        return self.client.create_community(parent, data)
+
+    def create_collection(self, parent, data):
+        _logger.debug(f'Creating collection: {data}')
+        return self.client.create_collection(parent, data)
+
+    def create_item(self, parent, data):
+        _logger.debug(f'Creating item: {data}')
+        return self.client.create_item(parent, data)
+
+    def create_bitstream(self, parent, name, path, content_type):
+        _logger.debug(f'Creating bitstream: {name}')
+        return self.client.create_bitstream(parent, name, path, content_type)
+
+    def create_bundle(self, parent):
+        _logger.debug(f'Creating bundle with parent: {parent}')
+        return self.client.create_bundle(parent)
