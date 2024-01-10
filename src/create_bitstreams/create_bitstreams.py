@@ -1,9 +1,10 @@
 import logging
 import os
+import zipfile
 
 import src.dspace  # noqa
-import src.settings # noqa
-import src.project_settings # noqa
+import src.settings  # noqa
+import src.project_settings  # noqa
 
 from src.dspace.impl.models import Item
 from src.utils import update_settings
@@ -11,8 +12,11 @@ from src.utils import update_settings
 env = update_settings(src.settings.env, src.project_settings.settings)
 
 MULTIPART_CONTENT_TYPE = 'multipart/form-data'
-HUNDRED_FILES_PATH = 'hundred_of_files'
-ZIP_FILES_PATH = 'zip_files'
+COPIES_COUNT = 100
+
+TEMPLATE_FILE_PATH = 'template.png'
+ZIP_FILE_PATH = 'zipfile.zip'
+BIG_FILE_PATH = 'bigfile.txt'
 
 COMMUNITY_2_CREATE = {
     "type": {
@@ -59,45 +63,62 @@ ITEM_2_CREATE = {
     "withdrawn": False,
 }
 
-
-def load_files_from_folder(folder_path):
+def remove_file(path):
     """
-    Load all files from folder.
-    @param folder_path: path to the folder
-    @return: list of files or None if folder does not exist
+    Remove file from path.
+    @param path: path to the file
     """
-    # Check if the folder path exists
-    if not os.path.exists(folder_path):
-        logging.warning(f"The folder '{folder_path}' does not exist.")
-        return None
-
-    f = []
-    for (dirpath, dirnames, filenames) in os.walk(folder_path):
-        f.extend(filenames)
-        break
-
-    return f
+    try:
+        os.remove(path)
+    except OSError as e:
+        logging.warning(f"Error: {e.filename} - {e.strerror}.")
 
 
-def create_bistreams_from_folder(dspace_client, item, folder_path):
+def create_bistreams(dspace_client, item, is_bigfile=False, is_zipfile=False, is_hundred_files=False):
     """
-    Create a bitstream for each file from specific folder.
-    @param dspace_client: dspace client
+    Create bitstreams for item.
+    @param dspace_client: dsapce client
     @param item: item where the bitstreams will be created
-    @param folder_path: folder path where the files are located
+    @param is_bigfile: if create an Item with big file
+    @param is_zipfile: if create an Item with zip file
+    @param is_hundred_files: if create an Item with 100 files
     """
     # Create a bundle for item where the files will be uploaded
     original_bundle = dspace_client.create_bundle(item)
     if not original_bundle:
         logging.warning(f'Bundle was not created.')
 
-    # Load files from folder
-    files = load_files_from_folder(folder_path)
-    if not files:
-        logging.warning(f'No files were loaded from the folder {folder_path}')
-    for file_name in files:
-        logging.info(f'Creating bitstream with file: {file_name}')
-        dspace_client.create_bitstream(original_bundle, file_name, f'{folder_path}/{file_name}', MULTIPART_CONTENT_TYPE)
+    if is_hundred_files:
+        for i in range(COPIES_COUNT):
+            # create bitstream
+            logging.info(f'Creating bitstream with file: template_{i}')
+            dspace_client.create_bitstream(original_bundle, TEMPLATE_FILE_PATH, TEMPLATE_FILE_PATH,
+                                           MULTIPART_CONTENT_TYPE)
+        return
+
+    if is_zipfile:
+        # generate zip file
+        zipfile.ZipFile(ZIP_FILE_PATH, mode='w').write(TEMPLATE_FILE_PATH)
+
+        # create bitstream
+        logging.info(f'Creating bitstream with file: {ZIP_FILE_PATH}')
+        dspace_client.create_bitstream(original_bundle, ZIP_FILE_PATH, ZIP_FILE_PATH, MULTIPART_CONTENT_TYPE)
+        remove_file(ZIP_FILE_PATH)
+        return
+
+    if is_bigfile:
+        # generate big file
+        with open(BIG_FILE_PATH, 'wb') as f:
+            # 3GB
+            f.seek(3 * 1024 * 1024 * 1024)
+            f.write(b'\0')
+
+        # create bitstream
+        logging.info(f'Creating bitstream with file: {BIG_FILE_PATH}')
+        dspace_client.create_bitstream(original_bundle, BIG_FILE_PATH, BIG_FILE_PATH,
+                                       MULTIPART_CONTENT_TYPE)
+        remove_file(BIG_FILE_PATH)
+        return
 
 
 def create_item_with_title(dspace_client, parent, title):
@@ -131,10 +152,15 @@ if __name__ == '__main__':
     if not collection:
         logging.warning(f'Collection was not created.')
 
+    # TODO Update existing item if it doesn't exist or create a new one
     # Create item with 100 bitstreams
     item_hundred_files = create_item_with_title(dspace_be, collection, 'Hundred Files')
-    create_bistreams_from_folder(dspace_be, item_hundred_files, HUNDRED_FILES_PATH)
+    create_bistreams(dspace_be, item_hundred_files, is_hundred_files=True)
 
     # Create item with zip bitstream
-    item_zip_file = create_item_with_title(dspace_be, collection, 'Zip File')
-    create_bistreams_from_folder(dspace_be, item_zip_file, ZIP_FILES_PATH)
+    item_zip_files = create_item_with_title(dspace_be, collection, 'Zip File')
+    create_bistreams(dspace_be, item_zip_files, is_zipfile=True)
+
+    # Create item with big bitstream
+    item_big_file = create_item_with_title(dspace_be, collection, 'Big File')
+    create_bistreams(dspace_be, item_big_file, is_bigfile=True)
