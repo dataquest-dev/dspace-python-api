@@ -2,17 +2,17 @@ import enum
 import logging
 
 user = "test@test.edu"
-password = "dspace"
+password = "admin"
 authentication = True
 
 # http or https
 use_ssl = False
 # host = "localhost"
 host = "dev-5.pc"
-# fe_port = ":4000"
-fe_port = None
-# be_port = ":8080"
-be_port = None
+fe_port = ":85"
+# fe_port = None
+be_port = ":85"
+# be_port = None
 be_location = "/server/"
 
 # config logging

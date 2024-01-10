@@ -674,7 +674,7 @@ class DSpaceClient:
 
         mp_encoder = MultipartEncoder(
             fields={
-                'file': (name, open(path, 'rb'), 'text/plain'),
+                'file': (name, open(path, 'rb')),
             }
         )
         h.update({'Content-Type': mp_encoder.content_type})
