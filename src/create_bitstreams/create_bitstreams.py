@@ -74,39 +74,56 @@ def remove_file(path):
         logging.warning(f"Error: {e.filename} - {e.strerror}.")
 
 
-def create_bistreams(dspace_client, item, is_bigfile=False, is_zipfile=False, is_hundred_files=False):
+def fetch_original_bundle(dspace_client, item):
+    """
+    Fetch original bundle from item.
+    @param dspace_client: dspace client
+    @param item: item where the bundle will be fetched
+    @return: original bundle or None if bundle was not found
+    """
+    item_bundles = dspace_client.client.get_bundles(item)
+    for bundle in item_bundles:
+        if bundle.name == 'ORIGINAL':
+            return bundle
+    return None
+
+
+def create_bistreams(dspace_client, item, is_big_file=False, is_zip_file=False, is_hundred_files=False):
     """
     Create bitstreams for item.
     @param dspace_client: dsapce client
     @param item: item where the bitstreams will be created
-    @param is_bigfile: if create an Item with big file
-    @param is_zipfile: if create an Item with zip file
+    @param is_big_file: if create an Item with big file
+    @param is_zip_file: if create an Item with zip file
     @param is_hundred_files: if create an Item with 100 files
     """
-    # Create a bundle for item where the files will be uploaded
-    original_bundle = dspace_client.create_bundle(item)
+    # Fetch a bundle of existing Item or create a new one
+    # It is a bundle where the files will be uploaded
+    original_bundle = fetch_original_bundle(dspace_be, item)
+    if original_bundle is None:
+        dspace_client.client.create_bundle(item)
     if not original_bundle:
-        logging.warning(f'Bundle was not created.')
+        logging.warning(f'The bundle was neither found nor created.')
 
     if is_hundred_files:
         for i in range(COPIES_COUNT):
             # create bitstream
             logging.info(f'Creating bitstream with file: template_{i}')
-            dspace_client.create_bitstream(original_bundle, TEMPLATE_FILE_PATH, TEMPLATE_FILE_PATH,
+            dspace_client.client.create_bitstream(original_bundle, TEMPLATE_FILE_PATH, TEMPLATE_FILE_PATH,
                                            MULTIPART_CONTENT_TYPE)
         return
 
-    if is_zipfile:
+    if is_zip_file:
         # generate zip file
         zipfile.ZipFile(ZIP_FILE_PATH, mode='w').write(TEMPLATE_FILE_PATH)
 
         # create bitstream
         logging.info(f'Creating bitstream with file: {ZIP_FILE_PATH}')
-        dspace_client.create_bitstream(original_bundle, ZIP_FILE_PATH, ZIP_FILE_PATH, MULTIPART_CONTENT_TYPE)
+        dspace_client.client.create_bitstream(original_bundle, ZIP_FILE_PATH, ZIP_FILE_PATH, MULTIPART_CONTENT_TYPE)
         remove_file(ZIP_FILE_PATH)
         return
 
-    if is_bigfile:
+    if is_big_file:
         # generate big file
         with open(BIG_FILE_PATH, 'wb') as f:
             # 3GB
@@ -115,7 +132,7 @@ def create_bistreams(dspace_client, item, is_bigfile=False, is_zipfile=False, is
 
         # create bitstream
         logging.info(f'Creating bitstream with file: {BIG_FILE_PATH}')
-        dspace_client.create_bitstream(original_bundle, BIG_FILE_PATH, BIG_FILE_PATH,
+        dspace_client.client.create_bitstream(original_bundle, BIG_FILE_PATH, BIG_FILE_PATH,
                                        MULTIPART_CONTENT_TYPE)
         remove_file(BIG_FILE_PATH)
         return
@@ -131,7 +148,19 @@ def create_item_with_title(dspace_client, parent, title):
     """
     item2create = ITEM_2_CREATE
     item2create['metadata']['dc.title'][0]['value'] = title
-    return dspace_client.create_item(parent.uuid, Item(item2create))
+    return dspace_client.client.create_item(parent.uuid, Item(item2create))
+
+
+def pop_item(items: list):
+    """
+    Pop item from list.
+    @param items: list of item fetched from the server
+    @return: item or None
+    """
+    if items is None:
+        return None
+
+    return items.pop()
 
 
 if __name__ == '__main__':
@@ -142,25 +171,38 @@ if __name__ == '__main__':
         env["backend"]["authentication"]
     )
 
-    # Create community
-    community = dspace_be.create_community(None, COMMUNITY_2_CREATE)
-    if not community:
-        logging.warning(f'Community was not created.')
+    # Fetch all items from the server
+    all_items = dspace_be.client.get_items()
 
-    # Create collection
-    collection = dspace_be.create_collection(community.uuid, COLLECTION_2_CREATE)
-    if not collection:
-        logging.warning(f'Collection was not created.')
+    # 3 Items are updated - if they don't exist create a community and collection where a new item will be created
+    if len(all_items) < 3:
+        # Create community
+        community = dspace_be.client.create_community(None, COMMUNITY_2_CREATE)
+        if not community:
+            logging.warning(f'Community was not created.')
 
-    # TODO Update existing item if it doesn't exist or create a new one
-    # Create item with 100 bitstreams
-    item_hundred_files = create_item_with_title(dspace_be, collection, 'Hundred Files')
+        # Create collection
+        collection = dspace_be.client.create_collection(community.uuid, COLLECTION_2_CREATE)
+        if not collection:
+            logging.warning(f'Collection was not created.')
+
+    # Update item with files or create a new one
+
+    # Item with 100 bitstreams
+    item_hundred_files = pop_item(all_items)
+    if item_hundred_files is None:
+        item_hundred_files = create_item_with_title(dspace_be, collection, 'Hundred Files')
     create_bistreams(dspace_be, item_hundred_files, is_hundred_files=True)
 
-    # Create item with zip bitstream
-    item_zip_files = create_item_with_title(dspace_be, collection, 'Zip File')
-    create_bistreams(dspace_be, item_zip_files, is_zipfile=True)
+    # Item with zip bitstream
+    item_zip_files = pop_item(all_items)
+    if item_zip_files is None:
+        item_zip_files = create_item_with_title(dspace_be, collection, 'Zip File')
+    create_bistreams(dspace_be, item_zip_files, is_zip_file=True)
 
-    # Create item with big bitstream
-    item_big_file = create_item_with_title(dspace_be, collection, 'Big File')
-    create_bistreams(dspace_be, item_big_file, is_bigfile=True)
+    # Item with big bitstream
+    item_big_file = pop_item(all_items)
+    if item_big_file is None:
+        item_big_file = create_item_with_title(dspace_be, collection, 'Big File')
+    create_bistreams(dspace_be, item_big_file, is_big_file=True)
+
