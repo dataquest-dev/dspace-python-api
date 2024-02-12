@@ -4,4 +4,3 @@ lxml
 psycopg2
 pre-commit
 tqdm
-requests-toolbelt
