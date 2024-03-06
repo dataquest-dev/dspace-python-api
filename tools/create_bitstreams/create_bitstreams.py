@@ -19,6 +19,9 @@ _logger = logging.getLogger()
 
 # env settings, update with project_settings
 env = update_settings(settings.env, project_settings.settings)
+# abcd = os.getenv(")
+if "DSPACE_REST_API" in os.environ:
+    env["backend"]["endpoint"] = os.getenv("DSPACE_REST_API")
 init_logging(_logger, env["log_file"])
 
 MULTIPART_CONTENT_TYPE = 'multipart/form-data'
