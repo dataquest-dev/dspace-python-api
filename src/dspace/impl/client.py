@@ -231,7 +231,7 @@ class DSpaceClient:
         check_response(r, "api post")
         return r
 
-    def api_put(self, url, params, json_p, retry=False):
+    def api_put(self, url, params, json_p, retry=False, content_type='application/json'):
         """
         Perform a PUT request. Refresh XSRF token if necessary.
         PUTs are typically used to update objects.
@@ -243,15 +243,16 @@ class DSpaceClient:
                         Used if we need to refresh XSRF.
         @return:        Response from API
         """
-        h = {'Content-type': 'application/json'}
+        h = {'Content-type': content_type}
         r = self.session.put(url, params=params, json=json_p, headers=h)
         if 'DSPACE-XSRF-TOKEN' in r.headers:
             t = r.headers['DSPACE-XSRF-TOKEN']
-            logging.debug('Updating token to ' + t)
+            logging.debug('API Put: Updating token to ' + t)
             self.session.headers.update({'X-XSRF-Token': t})
             self.session.cookies.update({'X-XSRF-Token': t})
 
         if r.status_code == 403:
+            self.exception401Counter = 0
             # 403 Forbidden
             # If we had a CSRF failure, retry the request with the updated token
             # After speaking in #dev it seems that these
@@ -264,8 +265,26 @@ class DSpaceClient:
                     logging.error('Already retried... something must be wrong')
                 else:
                     logging.debug("Retrying request with updated CSRF token")
-                    return self.api_put(url, params=params, json_p=json_p, retry=True)
-
+                    return self.api_put(url, params=params, json_p=json_p, retry=True, content_type=content_type)
+        elif r.status_code == 401:
+            r_json = r.json()
+            if 'message' in r_json and 'Authentication is required' in r_json[
+                    'message']:
+                if retry:
+                    logging.error(
+                        'API Post: Already retried... something must be wrong')
+                    self.exception401Counter = 0
+                else:
+                    logging.debug("API Post: Retrying request with updated CSRF token")
+                    # try to authenticate
+                    self.authenticate()
+                    # Try to authenticate and repeat the request 3 times -
+                    # if it won't happen log error
+                    self.exception401Counter = self.exception401Counter + 1
+                    retry_value = False
+                    if self.exception401Counter > 3:
+                        retry_value = True
+                    return self.api_put(url, params=params, json_p=json_p, retry=True, content_type=content_type)
         return r
 
     def api_delete(self, url, params, retry=False):
@@ -556,6 +575,24 @@ class DSpaceClient:
             logging.error(f'{e}')
             return None
 
+
+    def get_bundle_by_name(self, name, item_uuid):
+        """
+        Get a bundle by name for a specific item
+        @param name:    Name of the bundle
+        @param item_uuid: UUID of the item
+        @return:        Bundle object
+        """
+        url = f'{self.API_ENDPOINT}core/items/{item_uuid}/bundles'
+        r_json = self.fetch_resource(url, params=None)
+        if '_embedded' in r_json:
+            if 'bundles' in r_json['_embedded']:
+                for bundle in r_json['_embedded']['bundles']:
+                    if bundle['name'] == name:
+                        return Bundle(bundle)
+        return None
+
+
     def get_bundles(self, parent=None, uuid=None):
         """
         Get bundles for an item
@@ -838,6 +875,47 @@ class DSpaceClient:
                 for item_resource in r_json['_embedded']['items']:
                     items.append(Item(item_resource))
         return items
+
+    def get_items_from_collection(self, collection_id, page=0, size=1000):
+        """
+        Get all items
+        @return:        list of Item objects
+        """
+        url = f'{self.API_ENDPOINT}discover/search/objects?sort=dc.date.accessioned,DESC&page={page}&size={size}&scope={collection_id}&dsoType=ITEM&embed=thumbnail'
+
+        items = list()
+        r = self.api_get(url)
+        r_json = parse_json(r)
+        if '_embedded' in r_json:
+            if 'searchResult' in r_json['_embedded']:
+                if '_embedded' in r_json['_embedded']['searchResult']:
+                    for item_resource in r_json['_embedded']['searchResult']['_embedded']['objects']:
+                        items.append(Item(item_resource['_embedded']['indexableObject']))
+
+        return items
+
+
+    def get_resource_policy(self, bundle_uuid):
+        """
+        Get a resource policy for a specific bundle
+        """
+        url = f'{self.API_ENDPOINT}authz/resourcepolicies/search/resource?uuid={bundle_uuid}&embed=eperson&embed=group'
+        r = self.api_get(url)
+        r_json = parse_json(r)
+        if '_embedded' in r_json:
+            if 'resourcepolicies' in r_json['_embedded']:
+                return r_json['_embedded']['resourcepolicies'][0]
+
+
+    def update_resource_policy_group(self, policy_id, group_uuid):
+        """
+        Update a resource policy with a new group
+        """
+        url = f'{self.API_ENDPOINT}authz/resourcepolicies/{policy_id}/group'
+        body = f'{self.API_ENDPOINT}eperson/groups/{group_uuid}'
+        r = self.api_put(url, None, body, content_type='text/uri-list')
+        return r
+
 
     def get_item(self, uuid):
         """

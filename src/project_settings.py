@@ -9,7 +9,7 @@ settings = {
     "resume_dir": "__temp/resume/",
 
     "backend": {
-        "endpoint": "http://dev-5.pc:85/server/api/",
+        "endpoint": "http://localhost:8080/server/api/",
         "user": "test@test.edu",
         "password": "admin",
         "authentication": True,
