@@ -61,7 +61,7 @@ if __name__ == '__main__':
     )
 
     # Group ID of the group to which the policy will be changed e.g. admin group
-    GROUP_ID = "59ca14ed-0380-4655-bfa2-ca0711d1f1d0"
+    GROUP_ID = "a8980286-7ec9-465c-b696-5dc218968292"
 
     # Community UUID of the community whose items of collections will be updated
     COM_UPDATE_ITEMS_UUID = 'e640c622-f0de-43e1-8446-bd6007737022'
@@ -89,7 +89,6 @@ if __name__ == '__main__':
         # Get all items of the collection
         items_of_collection = get_all_items_from_collection(coll)
         _logger.info(f'*******************Collection: {coll.name}*******************')
-        _logger.info(f'Items length: {len(items_of_collection)}')
         for item in items_of_collection:
             collection_counter += 1
             _logger.debug(f'Item: {item.uuid}')
@@ -102,10 +101,13 @@ if __name__ == '__main__':
                 continue
             counter += 1
             resource_policy = dspace_be.client.get_resource_policy(bundle.uuid)
-            _logger.debug(
-                f'Changing policy uuid={resource_policy["id"]} for item uuid={item.uuid} to group uuid={GROUP_ID}')
-            r = dspace_be.client.update_resource_policy_group(resource_policy["id"], GROUP_ID)
-            _logger.debug('Response: ' + str(r))
+            if resource_policy is not None:
+                _logger.info(
+                    f'Changing policy uuid={resource_policy["id"]} for item uuid={item.uuid} to group uuid={GROUP_ID}')
+                r = dspace_be.client.update_resource_policy_group(resource_policy["id"], GROUP_ID)
+                _logger.debug('Response: ' + str(r))
+            else:
+                _logger.warning(f'No resource policy for bundle {bundle.uuid} in item uuid={item.uuid}')
         _logger.info(f'===================Updated Items: {collection_counter}=====================')
 
     _logger.info(f'Items Without file: {without_file}')
