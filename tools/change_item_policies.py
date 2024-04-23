@@ -65,8 +65,18 @@ if __name__ == '__main__':
 
     # Community UUID of the community whose items of collections will be updated
     COM_UPDATE_ITEMS_UUID = 'e640c622-f0de-43e1-8446-bd6007737022'
-    COL_SUBCOLLS_URL = f'{dspace_be.endpoint}/core/communities/{COM_UPDATE_ITEMS_UUID}/collections'
 
+    # Bundle name
+    BUNDLE_NAME = 'ORIGINAL'
+    # BUNDLE_NAME = 'THUMBNAIL'
+
+    # !!!Allow only one of the following to be True!!!
+    # Update bundle policy of the Item
+    BUNDLE_RESOURCE_POLICY = False
+    # Update item policy of the Item
+    ITEM_RESOURCE_POLICY = True
+
+    COL_SUBCOLLS_URL = f'{dspace_be.endpoint}/core/communities/{COM_UPDATE_ITEMS_UUID}/collections'
     COMMUNITY = Community({
         "id": COM_UPDATE_ITEMS_UUID,
         "type": "community",
@@ -81,6 +91,8 @@ if __name__ == '__main__':
     counter = 0
     # How many items were without file
     without_file = 0
+    # How many items were without item resource policy
+    without_item_r_policy = 0
     # Get all collections of the community
     subcolls = dspace_be.client.get_collections(community=COMMUNITY)
     for coll in subcolls:
@@ -92,15 +104,31 @@ if __name__ == '__main__':
         for item in items_of_collection:
             collection_counter += 1
             _logger.debug(f'Item: {item.uuid}')
-            # Get bundle of the item - ORIGINAL
-            bundle = dspace_be.client.get_bundle_by_name('ORIGINAL', item.uuid)
-            # If there is no bundle, skip the item - there is no file
-            if not bundle:
-                _logger.debug(f'No ORIGINAL bundle for item uuid={item.uuid}')
-                without_file += 1
-                continue
+
+            resource_policy = None
+            bundle = dspace_be.client.get_bundle_by_name(BUNDLE_NAME, item.uuid)
+            item_resource_policy = dspace_be.client.get_resource_policy(item.uuid)
+
+            # Update bundle policy of the Item
+            if BUNDLE_RESOURCE_POLICY:
+                # Get bundle of the item - ORIGINAL
+                # If there is no bundle, skip the item - there is no file
+                if not bundle:
+                    _logger.debug(f'No ORIGINAL bundle for item uuid={item.uuid}')
+                    without_file += 1
+                    continue
+                resource_policy = dspace_be.client.get_resource_policy(bundle.uuid)
+            # Update item policy of the Item
+            if ITEM_RESOURCE_POLICY:
+                # Get item resource policy
+                # If there is no item resource policy, skip the item
+                if not item_resource_policy:
+                    _logger.debug(f'No resource policy for item uuid={item.uuid}')
+                    without_item_r_policy += 1
+                    continue
+                resource_policy = item_resource_policy
+
             counter += 1
-            resource_policy = dspace_be.client.get_resource_policy(bundle.uuid)
             if resource_policy is not None:
                 _logger.info(
                     f'Changing policy uuid={resource_policy["id"]} for item uuid={item.uuid} to group uuid={GROUP_ID}')
@@ -111,4 +139,5 @@ if __name__ == '__main__':
         _logger.info(f'===================Updated Items: {collection_counter}=====================')
 
     _logger.info(f'Items Without file: {without_file}')
+    _logger.info(f'Items without resource policy: {without_item_r_policy}')
     _logger.info(f'Total updated Items: {counter}')
