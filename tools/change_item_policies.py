@@ -29,6 +29,17 @@ if "DSPACE_REST_API" in os.environ:
     _logger.info(f"Loaded env.backend.endpoint from env DSPACE_REST_API."
                  f" Current value: {env_backend_endpoint}")
 
+
+def update_resource_policy(dspace_be, resource_policy, item, bundle):
+    if resource_policy is not None:
+        _logger.info(
+            f'Changing policy uuid={resource_policy["id"]} for item uuid={item.uuid} to group uuid={GROUP_ID}')
+        r = dspace_be.client.update_resource_policy_group(resource_policy["id"], GROUP_ID)
+        _logger.debug('Response: ' + str(r))
+    else:
+        _logger.warning(f'No resource policy for bundle {bundle.uuid} in item uuid={item.uuid}')
+
+
 def get_all_items_from_collection(coll):
     """
     Get all items from collection
@@ -67,14 +78,16 @@ if __name__ == '__main__':
     COM_UPDATE_ITEMS_UUID = 'e640c622-f0de-43e1-8446-bd6007737022'
 
     # Bundle name
-    BUNDLE_NAME = 'ORIGINAL'
-    # BUNDLE_NAME = 'THUMBNAIL'
+    # BUNDLE_NAME = 'ORIGINAL'
+    BUNDLE_NAME = 'THUMBNAIL'
 
     # !!!Allow only one of the following to be True!!!
     # Update bundle policy of the Item
     BUNDLE_RESOURCE_POLICY = False
     # Update item policy of the Item
-    ITEM_RESOURCE_POLICY = True
+    ITEM_RESOURCE_POLICY = False
+    # Update policy of specific bitstreams
+    BITSTREAM_RESOURCE_POLICY = True
 
     COL_SUBCOLLS_URL = f'{dspace_be.endpoint}/core/communities/{COM_UPDATE_ITEMS_UUID}/collections'
     COMMUNITY = Community({
@@ -111,13 +124,14 @@ if __name__ == '__main__':
 
             # Update bundle policy of the Item
             if BUNDLE_RESOURCE_POLICY:
-                # Get bundle of the item - ORIGINAL
+                # Get bundle of the item - ORIGINAL/Thumbnail
                 # If there is no bundle, skip the item - there is no file
                 if not bundle:
-                    _logger.debug(f'No ORIGINAL bundle for item uuid={item.uuid}')
+                    _logger.debug(f'No {BUNDLE_NAME} bundle for item uuid={item.uuid}')
                     without_file += 1
                     continue
-                resource_policy = dspace_be.client.get_resource_policy(bundle.uuid)
+                counter += 1
+                update_resource_policy(dspace_be, resource_policy, item, bundle)
             # Update item policy of the Item
             if ITEM_RESOURCE_POLICY:
                 # Get item resource policy
@@ -126,16 +140,23 @@ if __name__ == '__main__':
                     _logger.debug(f'No resource policy for item uuid={item.uuid}')
                     without_item_r_policy += 1
                     continue
-                resource_policy = item_resource_policy
+                counter += 1
+                update_resource_policy(dspace_be, resource_policy, item, bundle)
+            # Update policy of specific bitstreams
+            if BITSTREAM_RESOURCE_POLICY:
+                # Get bundle of the item - ORIGINAL/Thumbnail
+                # If there is no bundle, skip the item - there is no file
+                if not bundle:
+                    _logger.debug(f'No {BUNDLE_NAME} bundle for item uuid={item.uuid}')
+                    without_file += 1
+                    continue
+                bitstreams = dspace_be.client.get_bitstreams(bundle=bundle, page=0, size=200)
 
-            counter += 1
-            if resource_policy is not None:
-                _logger.info(
-                    f'Changing policy uuid={resource_policy["id"]} for item uuid={item.uuid} to group uuid={GROUP_ID}')
-                r = dspace_be.client.update_resource_policy_group(resource_policy["id"], GROUP_ID)
-                _logger.debug('Response: ' + str(r))
-            else:
-                _logger.warning(f'No resource policy for bundle {bundle.uuid} in item uuid={item.uuid}')
+                # Update policy of all bitstreams in the bundle
+                for bitstream in bitstreams:
+                    resource_policy = dspace_be.client.get_resource_policy(bitstream.uuid)
+                    update_resource_policy(dspace_be, resource_policy, item, bundle)
+                    counter += 1
         _logger.info(f'===================Updated Items: {collection_counter}=====================')
 
     _logger.info(f'Items Without file: {without_file}')
