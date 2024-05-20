@@ -17,7 +17,7 @@ because we use this endpoint for importing existing data.
 
 2.1. Clone python-api: https://github.com/dataquest-dev/dspace-python-api (branch `main`) and https://github.com/dataquest-dev/DSpace (branch `dtq-dev`)
 2.2. Clone submodules:
-2.2.1.: `git submodule update --init libs\dspace-rest-python\`
+2.2.1.: `git submodule update --init libs/dspace-rest-python/`
 
 
 4. Get database dump (old CLARIN-DSpace) and unzip it into `input/dump` directory in `dspace-python-api` project.
