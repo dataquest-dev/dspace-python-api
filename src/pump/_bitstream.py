@@ -49,8 +49,8 @@ class bitstreams:
     def uuid(self, b_id: int):
         return self._id2uuid.get(str(b_id), None)
 
-    @property
-    def bitstream_path(self, internal_id: str):
+    @staticmethod
+    def bitstream_path(internal_id: str):
         return f'{internal_id[:2]}/{internal_id[2:4]}/{internal_id[4:6]}/{internal_id}'
 
     @property
@@ -202,7 +202,7 @@ class bitstreams:
 
             # TODO(jm): fake bitstreams
             TEST_DEV5 = "http://dev-5.pc" in env["backend"]["endpoint"]
-            path = self.bitstream_path(b['internal_id'])
+            path = self.bitstream_path(params['internal_id'])
             if TEST_DEV5 and not path_exists(f'{env["assetstore"]}{path}'):
                 data['sizeBytes'] = 1748
                 data['checkSum'] = {
