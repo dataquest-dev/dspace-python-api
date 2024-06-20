@@ -1,5 +1,5 @@
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import, path_exists
 
 _logger = logging.getLogger("pump.bitstream")
 
@@ -48,6 +48,10 @@ class bitstreams:
 
     def uuid(self, b_id: int):
         return self._id2uuid.get(str(b_id), None)
+
+    @property
+    def bitstream_path(self, internal_id: str):
+        return f'{internal_id[:2]}/{internal_id[2:4]}/{internal_id[4:6]}/{internal_id}'
 
     @property
     def imported(self):
@@ -198,7 +202,8 @@ class bitstreams:
 
             # TODO(jm): fake bitstreams
             TEST_DEV5 = "http://dev-5.pc" in env["backend"]["endpoint"]
-            if TEST_DEV5:
+            path = self.bitstream_path(b['internal_id'])
+            if TEST_DEV5 and not path_exists(f'{env["assetstore"]}{path}'):
                 data['sizeBytes'] = 1748
                 data['checkSum'] = {
                     'checkSumAlgorithm': b['checksum_algorithm'], 'value': '8a4605be74aa9ea9d79846c1fba20a33'}
