@@ -147,6 +147,12 @@ class bitstreams:
         log_key = "bitstreams"
         log_before_import(log_key, expected)
 
+        # TODO(jm): fake bitstreams
+        TEST_DEV5 = "http://dev-5.pc" in env["backend"]["endpoint"]
+        if TEST_DEV5 and env["assetstore"] == "":
+            _logger.error(
+                'Location of assetstore folder is not defined but it should be checked!')
+
         for i, b in enumerate(progress_bar(self._bs)):
             b_id = b['bitstream_id']
             b_deleted = b['deleted']
@@ -201,12 +207,13 @@ class bitstreams:
             }
 
             # TODO(jm): fake bitstreams
-            TEST_DEV5 = "http://dev-5.pc" in env["backend"]["endpoint"]
             path = self.bitstream_path(params['internal_id'])
             if TEST_DEV5 and not path_exists(f'{env["assetstore"]}{path}'):
                 data['sizeBytes'] = 1748
                 data['checkSum'] = {
-                    'checkSumAlgorithm': b['checksum_algorithm'], 'value': '8a4605be74aa9ea9d79846c1fba20a33'}
+                    'checkSumAlgorithm': b['checksum_algorithm'],
+                    'value': '8a4605be74aa9ea9d79846c1fba20a33'
+                }
                 params['internal_id'] = '77893754617268908529226218097860272513'
 
             # if bitstream has bundle, set bundle_id from None to id
