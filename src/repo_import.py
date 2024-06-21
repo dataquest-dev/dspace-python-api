@@ -54,7 +54,7 @@ if __name__ == "__main__":
                         required=False, type=str, action='append')
     parser.add_argument('--assetstore',
                         help='Location of assetstore folder',
-                        required=False, type=str)
+                        required=False, type=str, default="")
 
     args = parser.parse_args()
     s = time.time()
