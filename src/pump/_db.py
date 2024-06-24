@@ -127,7 +127,7 @@ class db:
         return self.fetch_all(
             "SELECT table_name FROM information_schema.tables WHERE is_insertable_into = 'YES' AND table_schema = 'public'")
 
-    def status(self):
+    def table_count(self):
         d = {}
         tables = self.all_tables()
         for table in tables:
@@ -135,6 +135,10 @@ class db:
             # Use double quotes for table names because some of them are in uppercase.
             count = self.fetch_one(f"SELECT COUNT(*) FROM \"{name}\"")
             d[name] = count
+        return d
+
+    def status(self):
+        d = self.table_count()
         zero = ""
         msg = ""
         for name in sorted(d.keys()):
