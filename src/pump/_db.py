@@ -132,7 +132,8 @@ class db:
         tables = self.all_tables()
         for table in tables:
             name = table[0]
-            count = self.fetch_one(f"SELECT COUNT(*) FROM {name}")
+            # Use double quotes for table names because some of them are in uppercase.
+            count = self.fetch_one(f"SELECT COUNT(*) FROM \"{name}\"")
             d[name] = count
         zero = ""
         msg = ""
