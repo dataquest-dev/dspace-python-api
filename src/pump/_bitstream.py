@@ -1,5 +1,6 @@
+import os
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import, path_exists
+from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
 
 _logger = logging.getLogger("pump.bitstream")
 
@@ -147,7 +148,6 @@ class bitstreams:
         log_key = "bitstreams"
         log_before_import(log_key, expected)
 
-        # TODO(jm): fake bitstreams
         TEST_DEV5 = "http://dev-5.pc" in env["backend"]["endpoint"]
         if TEST_DEV5 and env["assetstore"] == "":
             _logger.error(
@@ -206,9 +206,10 @@ class bitstreams:
                 'primaryBundle_id': None
             }
 
-            # TODO(jm): fake bitstreams
             path = self.bitstream_path(params['internal_id'])
-            if TEST_DEV5 and not path_exists(f'{env["assetstore"]}{path}'):
+            full_path = os.path.join(env["assetstore"], path)
+            # TODO(jm): fake bitstreams
+            if TEST_DEV5 and not os.path.exists(full_path):
                 data['sizeBytes'] = 1748
                 data['checkSum'] = {
                     'checkSumAlgorithm': b['checksum_algorithm'],
