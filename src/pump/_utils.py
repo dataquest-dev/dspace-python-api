@@ -128,3 +128,8 @@ def log_before_import(msg: str, expected: int):
 def log_after_import(msg: str, expected: int, imported: int):
     prefix = "OK " if expected == imported else "!!! WARN !!! "
     _logger.info(f"{prefix}Imported [{imported: >4d}] {msg}")
+
+
+def instance_dev5_check(env):
+    # check if the instance is dev-5
+    return "http://dev-5.pc" in env["backend"]["endpoint"]

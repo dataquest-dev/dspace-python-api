@@ -1,6 +1,7 @@
 import os
 import logging
-from ._utils import read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import
+from ._utils import (read_json, time_method, serialize, deserialize, progress_bar, log_before_import, log_after_import,
+                     instance_dev5_check)
 
 _logger = logging.getLogger("pump.bitstream")
 
@@ -148,8 +149,8 @@ class bitstreams:
         log_key = "bitstreams"
         log_before_import(log_key, expected)
 
-        TEST_DEV5 = "http://dev-5.pc" in env["backend"]["endpoint"]
-        if TEST_DEV5 and env["assetstore"] == "":
+        TEST_DEV5 = instance_dev5_check(env)
+        if TEST_DEV5 and not env["assetstore"]:
             _logger.error(
                 'Location of assetstore folder is not defined but it should be checked!')
 
