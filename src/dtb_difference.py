@@ -45,7 +45,7 @@ if __name__ == "__main__":
         env["backend"]["authentication"]
     )
     repo = pump.repo(env, dspace_be)
-    # not working: metadata, groups, epersons
+    # not working: metadata, groups, epersons, licenses
     # missing validation table: egroups, tasklistitems, usermetadatas, resourcepolicies
     repo.diff(repo.handles)
     repo.diff(repo.bitstreamformatregistry)
@@ -53,7 +53,6 @@ if __name__ == "__main__":
     repo.diff(repo.collections)
     repo.diff(repo.registrationdatas)
     repo.diff(repo.userregistrations)
-    repo.diff(repo.licenses)
     repo.diff(repo.items)
     repo.diff(repo.bundles)
     repo.diff(repo.bitstreams)
