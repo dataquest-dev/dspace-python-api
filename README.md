@@ -81,7 +81,16 @@ e.g.,`handle.additional.prefixes = 11858, 11234, 11372, 11346, 20.500.12801, 20.
 - The values of table attributes that describe the last modification time of dspace object (for example attribute `last_modified` in table `Item`) have a value that represents the time when that object was migrated and not the value from migrated database dump.
 - If you don't have valid and complete data, not all data will be imported.
 
-## Vanilla import check
-1. Run Vanilla import based on instruction: https://wiki.lyrasis.org/display/DSDOC7x/Migrating+DSpace+to+a+new+server
-2. Update `tul_settings.py`
-3. run `cd ./src && python dtb_difference.py`
+## Import check
+1. Get database dumps and unzip them into `input/dump` directory in `dspace-python-api` project.
+Named them `dspace6_27.7.23.sql` and `dspace7_20.6.24.sql` if they are not.
+
+2. Create `dspace6` and `dspace7` databases from dump.
+Run `scripts/start.local.comp.dspace.db.bat` or use `scipts/init.comp.dspacebd.sh` directly with your database.
+
+3. Update `project_settings.py`. 
+For `dspace6` use settings for `"db_dspace_5"` and for `dspace7` use settings for `"db_dspace_7"`.
+Don't forget to set the database `name`, `password` and `port`.
+
+4. Compare dspace databases.
+- run command `cd ./src && python dtb_difference.py`
