@@ -14,6 +14,23 @@ import pump
 
 
 def difference_dtb(old_dtb: dict, new_dtb: dict):
+    """
+    Compare the counts of data in two databases and log the differences.
+
+    Parameters:
+    old_dtb (dict): The dictionary representing the old database.
+                    Keys are table names and values are their respective counts.
+    new_dtb (dict): The dictionary representing the new database.
+                    Keys are table names and values are their respective counts.
+
+    The result is based on the counts in new_dtb.
+    Example: If table1 in old_dtb has 6 items and new_dtb has 5 items, the output is:
+        table1:     1 deficit -> because in new_dtb there is 1 item missing (based on count)
+    If table1 in old_dtb has 6 items and new_dtb has 7 items, the output is:
+        table1:     1 surplus -> because in new_dtb there is 1 item more (based on count)
+    If the counts are equal, the output is:
+        table1:     0
+    """
     msg = ""
     no_exist7 = []
     no_exist5 = []
@@ -36,7 +53,6 @@ def difference_dtb(old_dtb: dict, new_dtb: dict):
 
 if __name__ == "__main__":
     _logger.info("Loading repo objects")
-
     _logger.info("Database difference (v6 vs v7):")
     raw_db_7 = pump.db(env["db_dspace_7"])
     raw_db_tul = pump.db(env["db_tul"])
