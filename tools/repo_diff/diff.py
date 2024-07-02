@@ -19,9 +19,38 @@ init_logging(_logger, env["log_file"])
 import dspace  # noqa
 
 
-if __name__ == "__main__":
-    _logger.info("Loading repo objects")
+def table_diff(old_db_d: dict, new_db_d: dict):
+    """
+      Compare the counts of data in two databases and log the differences.
 
+      The result is based on the counts in new_db_d.
+      Example: If table1 in old_db_d has 6 items and new_db_d has 5 items, the output is:
+          table1:     1 deficit -> because in new_db_d there is 1 item missing (based on count)
+      If table1 in old_db_d has 6 items and new_db_d has 7 items, the output is:
+          table1:     1 surplus -> because in new_db_d there is 1 item more (based on count)
+      If the counts are equal, the output is:
+          table1:     0
+      """
+    msg = ""
+    no_exist7 = []
+    for name in sorted(old_db_d.keys()):
+        if name not in new_db_d:
+            no_exist7.append(name)
+            continue
+        dif = int(new_db_d[name]) - int(old_db_d[name])
+        result = "more " if dif > 0 else ("less " if dif < 0 else "")
+        msg += f"{name: >40}: {dif: >8d} {result}\n"
+        del new_db_d[name]
+
+    no_exist_old = sorted(new_db_d.keys())
+
+    _logger.info(
+        f"\n{msg}Missing tables in v7: {', '.join(no_exist7)}\nCount: {len(no_exist7)}"
+        f"\nMissing tables in v5/6: {', '.join(no_exist_old)}\nCount: {len(no_exist_old)}")
+    _logger.info(40 * "=")
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Diff databases before/after import')
     parser.add_argument('--use', help='Instance to diff', required=True, type=str)
     args = parser.parse_args()
@@ -56,6 +85,10 @@ if __name__ == "__main__":
         "db_dspace_5"
     raw_db_dspace_old = db(env[raw_db_old_key])
 
+    # table diff
+    table_diff(raw_db_dspace_old.table_count(), raw_db_7.table_count())
+
+    # value/count diff
     diff = differ(raw_db_dspace_old, None, raw_db_7)
 
     diff.validate([handles.validate_table])
